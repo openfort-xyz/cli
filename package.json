@@ -15,13 +15,13 @@
     "skills": "pnpm openfort skills add"
   },
   "dependencies": {
-    "@openfort/openfort-node": "^0.9.1",
-    "incur": "^0.1.11"
+    "@openfort/openfort-node": "^0.10.1",
+    "incur": "^0.3.0"
   },
   "devDependencies": {
     "@types/node": "latest",
-    "tsx": "^4.21.0",
     "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "packageManager": "pnpm@10.16.1"

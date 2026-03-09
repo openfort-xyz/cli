@@ -33,6 +33,10 @@ sponsorship.command('list', {
     enabled: z.boolean().optional().describe('Filter by enabled status'),
   }),
   alias: { limit: 'l' },
+  examples: [
+    { description: 'List all sponsorships' },
+    { options: { enabled: true }, description: 'List active sponsorships only' },
+  ],
   output: z.object({
     data: z.array(sponsorshipItem),
     total: z.number(),
@@ -70,8 +74,12 @@ sponsorship.command('create', {
   output: sponsorshipItem,
   examples: [
     {
-      options: { policyId: 'ply_...', strategy: 'pay_for_user' as const, name: 'Polygon Gas' },
-      description: 'Create a pay-for-user sponsorship',
+      options: { policyId: 'ply_1a2b3c4d', strategy: 'pay_for_user' as const, name: 'Polygon Gas Sponsor' },
+      description: 'Sponsor gas fees for users on Polygon',
+    },
+    {
+      options: { policyId: 'ply_1a2b3c4d', strategy: 'charge_custom_tokens' as const, chainId: 137 },
+      description: 'Pay gas with custom tokens on chain 137',
     },
   ],
   async run(c) {
@@ -109,8 +117,11 @@ sponsorship.command('create', {
 sponsorship.command('get', {
   description: 'Get a fee sponsorship by ID.',
   args: z.object({
-    id: z.string().describe('Fee sponsorship ID'),
+    id: z.string().describe('Fee sponsorship ID (pol_...)'),
   }),
+  examples: [
+    { args: { id: 'pol_1a2b3c4d' }, description: 'Get sponsorship details' },
+  ],
   output: sponsorshipItem,
   async run(c) {
     const s = await c.var.openfort.feeSponsorship.get(c.args.id)
@@ -130,13 +141,16 @@ sponsorship.command('get', {
 sponsorship.command('update', {
   description: 'Update a fee sponsorship.',
   args: z.object({
-    id: z.string().describe('Fee sponsorship ID'),
+    id: z.string().describe('Fee sponsorship ID (pol_...)'),
   }),
   options: z.object({
     name: z.string().optional().describe('New name'),
     strategy: z.enum(sponsorSchemas).optional().describe('New strategy'),
     policyId: z.string().optional().describe('New policy ID'),
   }),
+  examples: [
+    { args: { id: 'pol_1a2b3c4d' }, options: { name: 'Mainnet Gas Sponsor' }, description: 'Rename a sponsorship' },
+  ],
   output: sponsorshipItem,
   async run(c) {
     const strategy: FeeSponsorshipStrategy | undefined = c.options.strategy
@@ -163,8 +177,11 @@ sponsorship.command('update', {
 sponsorship.command('enable', {
   description: 'Enable a fee sponsorship.',
   args: z.object({
-    id: z.string().describe('Fee sponsorship ID'),
+    id: z.string().describe('Fee sponsorship ID (pol_...)'),
   }),
+  examples: [
+    { args: { id: 'pol_1a2b3c4d' }, description: 'Enable a sponsorship' },
+  ],
   output: sponsorshipItem,
   async run(c) {
     const res = await c.var.openfort.feeSponsorship.enable(c.args.id)
@@ -184,8 +201,11 @@ sponsorship.command('enable', {
 sponsorship.command('disable', {
   description: 'Disable a fee sponsorship.',
   args: z.object({
-    id: z.string().describe('Fee sponsorship ID'),
+    id: z.string().describe('Fee sponsorship ID (pol_...)'),
   }),
+  examples: [
+    { args: { id: 'pol_1a2b3c4d' }, description: 'Disable a sponsorship' },
+  ],
   output: sponsorshipItem,
   async run(c) {
     const res = await c.var.openfort.feeSponsorship.disable(c.args.id)
@@ -205,8 +225,11 @@ sponsorship.command('disable', {
 sponsorship.command('delete', {
   description: 'Delete a fee sponsorship.',
   args: z.object({
-    id: z.string().describe('Fee sponsorship ID'),
+    id: z.string().describe('Fee sponsorship ID (pol_...)'),
   }),
+  examples: [
+    { args: { id: 'pol_1a2b3c4d' }, description: 'Delete a sponsorship' },
+  ],
   output: z.object({
     id: z.string(),
     deleted: z.boolean(),

@@ -14,6 +14,9 @@ const evm = Cli.create('evm', {
 
 evm.command('create', {
   description: 'Create a new EVM backend wallet.',
+  examples: [
+    { description: 'Create a new EVM wallet' },
+  ],
   output: z.object({
     id: z.string().describe('Account ID'),
     address: z.string().describe('Wallet address'),
@@ -43,6 +46,10 @@ evm.command('list', {
     skip: z.number().optional().describe('Offset'),
   }),
   alias: { limit: 'l' },
+  examples: [
+    { description: 'List all EVM backend wallets' },
+    { options: { limit: 5 }, description: 'Show first 5 wallets' },
+  ],
   output: z.object({
     accounts: z.array(z.object({
       id: z.string(),
@@ -72,6 +79,9 @@ evm.command('get', {
   args: z.object({
     id: z.string().describe('Account ID or address'),
   }),
+  examples: [
+    { args: { id: 'acc_1a2b3c4d' }, description: 'Get wallet by ID' },
+  ],
   output: z.object({
     id: z.string(),
     address: z.string(),
@@ -90,8 +100,11 @@ evm.command('get', {
 evm.command('delete', {
   description: 'Delete an EVM backend wallet.',
   args: z.object({
-    id: z.string().describe('Account ID'),
+    id: z.string().describe('Account ID (acc_...)'),
   }),
+  examples: [
+    { args: { id: 'acc_1a2b3c4d' }, description: 'Delete a wallet' },
+  ],
   output: z.object({
     id: z.string(),
     deleted: z.boolean(),
@@ -99,6 +112,151 @@ evm.command('delete', {
   async run(c) {
     const res = await c.var.openfort.accounts.evm.backend.delete(c.args.id)
     return c.ok({ id: res.id, deleted: res.deleted })
+  },
+})
+
+evm.command('update', {
+  description: 'Upgrade an EVM backend wallet to a delegated account (EIP-7702).',
+  args: z.object({
+    id: z.string().describe('Account ID (acc_...)'),
+  }),
+  options: z.object({
+    chainId: z.number().describe('Chain ID to deploy on'),
+  }),
+  examples: [
+    { args: { id: 'acc_1a2b3c4d' }, options: { chainId: 8453 }, description: 'Upgrade to delegated account on Base' },
+  ],
+  output: z.object({
+    id: z.string(),
+    address: z.string(),
+    accountType: z.string(),
+    chainId: z.number().optional(),
+    chainType: z.string(),
+  }),
+  async run(c) {
+    // First get the account to obtain walletId
+    const account = await c.var.openfort.accounts.evm.backend.get({ id: c.args.id })
+    const res = await c.var.openfort.accounts.evm.backend.update({
+      walletId: account.walletId,
+      chainId: c.options.chainId,
+      accountId: account.id,
+    })
+    return c.ok({
+      id: res.id,
+      address: res.address,
+      accountType: res.accountType,
+      chainId: res.chainId,
+      chainType: res.chainType,
+    })
+  },
+})
+
+evm.command('sign', {
+  description: 'Sign data with an EVM backend wallet.',
+  args: z.object({
+    id: z.string().describe('Account ID (acc_...)'),
+  }),
+  options: z.object({
+    data: z.string().describe('Hex-encoded data to sign'),
+  }),
+  examples: [
+    { args: { id: 'acc_1a2b3c4d' }, options: { data: '0xdeadbeef' }, description: 'Sign a message hash' },
+  ],
+  output: z.object({
+    signature: z.string(),
+  }),
+  async run(c) {
+    const signature = await c.var.openfort.accounts.evm.backend.sign({
+      id: c.args.id,
+      data: c.options.data,
+    })
+    return c.ok({ signature })
+  },
+})
+
+evm.command('import', {
+  description: 'Import a private key as an EVM backend wallet.',
+  options: z.object({
+    privateKey: z.string().describe('Private key (hex string)'),
+  }),
+  examples: [
+    { options: { privateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' }, description: 'Import a private key' },
+  ],
+  output: z.object({
+    id: z.string(),
+    address: z.string(),
+    custody: z.string(),
+  }),
+  async run(c) {
+    const account = await c.var.openfort.accounts.evm.backend.import({
+      privateKey: c.options.privateKey,
+    })
+    return c.ok({
+      id: account.id,
+      address: account.address,
+      custody: account.custody,
+    })
+  },
+})
+
+evm.command('export', {
+  description: 'Export an EVM backend wallet private key.',
+  args: z.object({
+    id: z.string().describe('Account ID (acc_...)'),
+  }),
+  examples: [
+    { args: { id: 'acc_1a2b3c4d' }, description: 'Export private key' },
+  ],
+  output: z.object({
+    privateKey: z.string(),
+  }),
+  async run(c) {
+    const privateKey = await c.var.openfort.accounts.evm.backend.export({
+      id: c.args.id,
+    })
+    return c.ok({ privateKey })
+  },
+})
+
+evm.command('send-transaction', {
+  description: 'Send a gasless EVM transaction (auto-delegates via EIP-7702 if needed).',
+  args: z.object({
+    id: z.string().describe('Account ID (acc_...)'),
+  }),
+  options: z.object({
+    chainId: z.number().describe('Chain ID'),
+    interactions: z.string().describe('Interactions as JSON: [{"to":"0x...","data":"0x...","value":"0"}]'),
+    policy: z.string().optional().describe('Policy ID for gas sponsorship (pol_...)'),
+  }),
+  examples: [
+    {
+      args: { id: 'acc_1a2b3c4d' },
+      options: {
+        chainId: 8453,
+        interactions: '[{"to":"0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359","data":"0xa9059cbb...","value":"0"}]',
+      },
+      description: 'Send a gasless transaction on Base',
+    },
+  ],
+  output: z.object({
+    id: z.string(),
+    chainId: z.number(),
+    transactionHash: z.string().optional(),
+  }),
+  async run(c) {
+    const account = await c.var.openfort.accounts.evm.backend.get({ id: c.args.id })
+    const interactions = JSON.parse(c.options.interactions)
+    const res = await c.var.openfort.accounts.evm.backend.sendTransaction({
+      account,
+      chainId: c.options.chainId,
+      interactions,
+      policy: c.options.policy,
+    })
+    return c.ok({
+      id: res.id,
+      chainId: res.chainId,
+      transactionHash: res.response?.transactionHash,
+    })
   },
 })
 
@@ -111,6 +269,9 @@ const solana = Cli.create('solana', {
 
 solana.command('create', {
   description: 'Create a new Solana backend wallet.',
+  examples: [
+    { description: 'Create a new Solana wallet' },
+  ],
   output: z.object({
     id: z.string().describe('Account ID'),
     address: z.string().describe('Wallet address'),
@@ -139,6 +300,9 @@ solana.command('list', {
     skip: z.number().optional().describe('Offset'),
   }),
   alias: { limit: 'l' },
+  examples: [
+    { description: 'List all Solana wallets' },
+  ],
   output: z.object({
     accounts: z.array(z.object({
       id: z.string(),
@@ -168,6 +332,9 @@ solana.command('get', {
   args: z.object({
     id: z.string().describe('Account ID or address'),
   }),
+  examples: [
+    { args: { id: 'acc_1a2b3c4d' }, description: 'Get wallet by ID' },
+  ],
   output: z.object({
     id: z.string(),
     address: z.string(),
@@ -186,8 +353,11 @@ solana.command('get', {
 solana.command('delete', {
   description: 'Delete a Solana backend wallet.',
   args: z.object({
-    id: z.string().describe('Account ID'),
+    id: z.string().describe('Account ID (acc_...)'),
   }),
+  examples: [
+    { args: { id: 'acc_1a2b3c4d' }, description: 'Delete a wallet' },
+  ],
   output: z.object({
     id: z.string(),
     deleted: z.boolean(),
@@ -195,6 +365,109 @@ solana.command('delete', {
   async run(c) {
     const res = await c.var.openfort.accounts.solana.backend.delete(c.args.id)
     return c.ok({ id: res.id, deleted: res.deleted })
+  },
+})
+
+solana.command('sign', {
+  description: 'Sign data with a Solana backend wallet.',
+  args: z.object({
+    id: z.string().describe('Account ID (acc_...)'),
+  }),
+  options: z.object({
+    data: z.string().describe('Data to sign'),
+  }),
+  examples: [
+    { args: { id: 'acc_1a2b3c4d' }, options: { data: 'hello' }, description: 'Sign a message' },
+  ],
+  output: z.object({
+    signature: z.string(),
+  }),
+  async run(c) {
+    const signature = await c.var.openfort.accounts.solana.backend.sign(c.args.id, c.options.data)
+    return c.ok({ signature })
+  },
+})
+
+solana.command('import', {
+  description: 'Import a private key as a Solana backend wallet.',
+  options: z.object({
+    privateKey: z.string().describe('Private key (hex-encoded 32 bytes or base58)'),
+  }),
+  examples: [
+    { options: { privateKey: 'abc123...' }, description: 'Import a Solana private key' },
+  ],
+  output: z.object({
+    id: z.string(),
+    address: z.string(),
+    custody: z.string(),
+  }),
+  async run(c) {
+    const account = await c.var.openfort.accounts.solana.backend.import({
+      privateKey: c.options.privateKey,
+    })
+    return c.ok({
+      id: account.id,
+      address: account.address,
+      custody: account.custody,
+    })
+  },
+})
+
+solana.command('export', {
+  description: 'Export a Solana backend wallet private key.',
+  args: z.object({
+    id: z.string().describe('Account ID (acc_...)'),
+  }),
+  examples: [
+    { args: { id: 'acc_1a2b3c4d' }, description: 'Export private key' },
+  ],
+  output: z.object({
+    privateKey: z.string(),
+  }),
+  async run(c) {
+    const privateKey = await c.var.openfort.accounts.solana.backend.export({
+      id: c.args.id,
+    })
+    return c.ok({ privateKey })
+  },
+})
+
+solana.command('transfer', {
+  description: 'Transfer SOL or SPL tokens.',
+  args: z.object({
+    id: z.string().describe('Account ID (acc_...)'),
+  }),
+  options: z.object({
+    to: z.string().describe('Destination address (base58)'),
+    amount: z.string().describe('Amount in base units (lamports for SOL)'),
+    token: z.string().optional().describe('Token: "sol" (default), "usdc", or mint address'),
+    cluster: z.enum(['devnet', 'mainnet-beta']).default('mainnet-beta').describe('Cluster: devnet or mainnet-beta'),
+  }),
+  examples: [
+    {
+      args: { id: 'acc_1a2b3c4d' },
+      options: { to: 'FDx9mf...', amount: '1000000', cluster: 'devnet' },
+      description: 'Transfer 0.001 SOL on devnet',
+    },
+    {
+      args: { id: 'acc_1a2b3c4d' },
+      options: { to: 'FDx9mf...', amount: '1000000', token: 'usdc', cluster: 'devnet' },
+      description: 'Transfer 1 USDC on devnet',
+    },
+  ],
+  output: z.object({
+    signature: z.string(),
+  }),
+  async run(c) {
+    const account = await c.var.openfort.accounts.solana.backend.get({ id: c.args.id })
+    const res = await c.var.openfort.accounts.solana.backend.transfer({
+      account,
+      to: c.options.to,
+      amount: BigInt(c.options.amount),
+      token: c.options.token,
+      cluster: c.options.cluster,
+    })
+    return c.ok({ signature: res.signature })
   },
 })
 
@@ -214,6 +487,11 @@ accounts.command('list', {
     custody: z.enum(['Developer', 'User']).optional().describe('Filter by custody'),
   }),
   alias: { limit: 'l' },
+  examples: [
+    { description: 'List all accounts across chains' },
+    { options: { chainType: 'EVM' as const }, description: 'Filter to EVM accounts only' },
+    { options: { custody: 'Developer' as const, limit: 10 }, description: 'List developer-custody wallets' },
+  ],
   output: z.object({
     data: z.array(z.object({
       id: z.string(),
