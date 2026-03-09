@@ -24,6 +24,10 @@ contracts.command('list', {
     skip: z.number().optional().describe('Offset'),
   }),
   alias: { limit: 'l' },
+  examples: [
+    { description: 'List all contracts' },
+    { options: { limit: 5 }, description: 'List first 5 contracts' },
+  ],
   output: z.object({
     data: z.array(contractItem),
     total: z.number(),
@@ -60,8 +64,12 @@ contracts.command('create', {
   output: contractItem,
   examples: [
     {
-      options: { name: 'USDC', address: '0xA0b8...', chainId: 137 },
+      options: { name: 'USDC', address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', chainId: 137 },
       description: 'Register USDC on Polygon',
+    },
+    {
+      options: { name: 'My NFT', address: '0x1234...', chainId: 1, abi: '[{"type":"function","name":"mint",...}]' },
+      description: 'Register contract with ABI',
     },
   ],
   async run(c) {
@@ -71,16 +79,27 @@ contracts.command('create', {
       chainId: c.options.chainId,
       abi: c.options.abi ? JSON.parse(c.options.abi) : undefined,
     })
-    return c.ok({
-      id: res.id,
-      createdAt: res.createdAt,
-      name: res.name,
-      chainId: res.chainId,
-      address: res.address,
-      deleted: res.deleted,
-      abi: res.abi,
-      publicVerification: res.publicVerification,
-    })
+    return c.ok(
+      {
+        id: res.id,
+        createdAt: res.createdAt,
+        name: res.name,
+        chainId: res.chainId,
+        address: res.address,
+        deleted: res.deleted,
+        abi: res.abi,
+        publicVerification: res.publicVerification,
+      },
+      {
+        cta: {
+          description: 'Next steps:',
+          commands: [
+            { command: `contracts get ${res.id}`, description: 'View this contract' },
+            { command: 'policies create', description: 'Create a policy for this contract' },
+          ],
+        },
+      },
+    )
   },
 })
 
@@ -89,6 +108,9 @@ contracts.command('get', {
   args: z.object({
     id: z.string().describe('Contract ID (con_...)'),
   }),
+  examples: [
+    { args: { id: 'con_1a2b3c4d' }, description: 'Get contract details' },
+  ],
   output: contractItem,
   async run(c) {
     const ct = await c.var.openfort.contracts.get(c.args.id)
@@ -116,6 +138,9 @@ contracts.command('update', {
     chainId: z.number().optional().describe('New chain ID'),
     abi: z.string().optional().describe('New ABI as JSON string'),
   }),
+  examples: [
+    { args: { id: 'con_1a2b3c4d' }, options: { name: 'USDC v2' }, description: 'Rename a contract' },
+  ],
   output: contractItem,
   async run(c) {
     const res = await c.var.openfort.contracts.update(c.args.id, {
@@ -142,6 +167,9 @@ contracts.command('delete', {
   args: z.object({
     id: z.string().describe('Contract ID (con_...)'),
   }),
+  examples: [
+    { args: { id: 'con_1a2b3c4d' }, description: 'Delete a contract' },
+  ],
   output: z.object({
     id: z.string(),
     deleted: z.boolean(),

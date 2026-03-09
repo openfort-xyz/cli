@@ -35,6 +35,10 @@ users.command('list', {
     name: z.string().optional().describe('Filter by name'),
   }),
   alias: { limit: 'l' },
+  examples: [
+    { description: 'List all users' },
+    { options: { email: 'user@example.com' }, description: 'Find user by email' },
+  ],
   output: z.object({
     data: z.array(userItem),
     total: z.number(),
@@ -68,6 +72,9 @@ users.command('get', {
   args: z.object({
     id: z.string().describe('User ID (usr_...)'),
   }),
+  examples: [
+    { args: { id: 'usr_1a2b3c4d' }, description: 'Get user profile and linked accounts' },
+  ],
   output: userItem,
   async run(c) {
     const u = await c.var.openfort.iam.users.get(c.args.id)
@@ -90,6 +97,9 @@ users.command('delete', {
   args: z.object({
     id: z.string().describe('User ID (usr_...)'),
   }),
+  examples: [
+    { args: { id: 'usr_1a2b3c4d' }, description: 'Delete a user and their accounts' },
+  ],
   output: z.object({
     id: z.string(),
     deleted: z.boolean(),
