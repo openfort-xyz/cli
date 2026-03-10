@@ -1,7 +1,7 @@
-import { join } from 'node:path'
 import { Cli, z, Errors } from 'incur'
 import { varsSchema } from '../vars.js'
 import { API_BASE_URL } from '../constants.js'
+import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
 import { writeEnvKey } from '../env.js'
 
 const SHIELD_API_URL = process.env.OPENFORT_SHIELD_URL || 'https://shield.openfort.xyz'
@@ -19,7 +19,7 @@ shield.command('create', {
   alias: { project: 'p' },
   output: z.object({
     message: z.string(),
-    envPath: z.string(),
+    credentialsPath: z.string(),
   }),
   examples: [
     {
@@ -33,7 +33,7 @@ shield.command('create', {
       throw new Errors.IncurError({
         code: 'MISSING_PUBLISHABLE_KEY',
         message: 'OPENFORT_PUBLISHABLE_KEY environment variable is required to create Shield keys.',
-        hint: 'Add OPENFORT_PUBLISHABLE_KEY to your .env file.',
+        hint: 'Run: openfort login',
       })
     }
 
@@ -43,7 +43,7 @@ shield.command('create', {
     if (!projectId) {
       throw new Errors.IncurError({
         code: 'MISSING_PROJECT_ID',
-        message: 'Project ID is required. Pass --project or set OPENFORT_PROJECT_ID in your .env file.',
+        message: 'Project ID is required. Pass --project or set OPENFORT_PROJECT_ID.',
         hint: 'Run: openfort login',
       })
     }
@@ -133,12 +133,12 @@ shield.command('create', {
       })
     }
 
-    // Step 4: Save keys to .env file
-    const envPath = join(process.cwd(), '.env')
-    writeEnvKey(envPath, 'SHIELD_PUBLISHABLE_KEY', shieldData.api_key)
-    writeEnvKey(envPath, 'SHIELD_SECRET_KEY', shieldData.api_secret)
-    writeEnvKey(envPath, 'SHIELD_ENCRYPTION_SHARE', shieldData.encryption_part)
+    // Step 4: Save keys to global credentials file
+    ensureConfigDir()
+    writeEnvKey(CREDENTIALS_PATH, 'SHIELD_PUBLISHABLE_KEY', shieldData.api_key)
+    writeEnvKey(CREDENTIALS_PATH, 'SHIELD_SECRET_KEY', shieldData.api_secret)
+    writeEnvKey(CREDENTIALS_PATH, 'SHIELD_ENCRYPTION_SHARE', shieldData.encryption_part)
 
-    return c.ok({ message: 'Shield keys were created and saved in .env file.', envPath })
+    return c.ok({ message: `Shield keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH })
   },
 })

@@ -1,8 +1,8 @@
 import { randomBytes, subtle } from 'node:crypto'
-import { join } from 'node:path'
 import { Cli, z, Errors } from 'incur'
 import { varsSchema } from '../vars.js'
 import { API_BASE_URL } from '../constants.js'
+import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
 import { writeEnvKey } from '../env.js'
 
 // --- Crypto helpers ---
@@ -96,11 +96,11 @@ walletKeys.command('create', {
   description: 'Create backend wallet keys (ECDSA P-256).',
   output: z.object({
     message: z.string(),
-    envPath: z.string(),
+    credentialsPath: z.string(),
   }),
   examples: [
     {
-      description: 'Create backend wallet keys and save to .env',
+      description: 'Create backend wallet keys and save to credentials',
     },
   ],
   async run(c) {
@@ -154,12 +154,12 @@ walletKeys.command('create', {
       })
     }
 
-    // Step 4: Save keys to .env file
+    // Step 4: Save keys to global credentials file
     // Store raw base64 (no PEM headers) — the SDK wraps it in PEM internally
-    const envPath = join(process.cwd(), '.env')
-    writeEnvKey(envPath, 'OPENFORT_WALLET_PUBLIC_KEY', publicKey)
-    writeEnvKey(envPath, 'OPENFORT_WALLET_SECRET', privateKey)
+    ensureConfigDir()
+    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_PUBLIC_KEY', publicKey.replaceAll('\n', ''))
+    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_SECRET', privateKey.replaceAll('\n', ''))
 
-    return c.ok({ message: 'Backend wallet keys were created and saved in .env file.', envPath })
+    return c.ok({ message: `Backend wallet keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH })
   },
 })

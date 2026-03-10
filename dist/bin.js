@@ -1,9 +1,13 @@
+import {
+  CREDENTIALS_PATH
+} from "./chunk-SZO4OB6U.js";
+
 // src/bin.ts
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
-var envPath = join(process.cwd(), ".env");
-if (existsSync(envPath)) {
-  const content = readFileSync(envPath, "utf-8");
+function loadEnvIntoProcess(filePath) {
+  if (!existsSync(filePath)) return;
+  const content = readFileSync(filePath, "utf-8");
   for (const line of content.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
@@ -16,5 +20,7 @@ if (existsSync(envPath)) {
     }
   }
 }
+loadEnvIntoProcess(join(process.cwd(), ".env"));
+loadEnvIntoProcess(CREDENTIALS_PATH);
 var { default: cli } = await import("./cli.js");
 cli.serve();

@@ -1,5 +1,10 @@
+import {
+  CREDENTIALS_PATH,
+  ensureConfigDir
+} from "./chunk-SZO4OB6U.js";
+
 // src/cli.ts
-import { Cli as Cli9, Errors } from "incur";
+import { Cli as Cli11, Errors as Errors3 } from "incur";
 import Openfort from "@openfort/openfort-node";
 
 // src/vars.ts
@@ -10,9 +15,7 @@ var varsSchema = z.object({
 
 // src/commands/login.ts
 import { randomBytes } from "crypto";
-import { readFileSync, writeFileSync, existsSync } from "fs";
 import { createServer } from "http";
-import { join } from "path";
 import { z as z2 } from "incur";
 
 // src/constants.ts
@@ -20,53 +23,8 @@ var API_BASE_URL = process.env.OPENFORT_BASE_URL || "https://api.openfort.xyz";
 var AUTH_PAGE_URL = process.env.OPENFORT_AUTH_PAGE_URL || "https://auth.openfort.xyz";
 var CLI_CALLBACK_PORT = Number(process.env.OPENFORT_CLI_CALLBACK_PORT) || 8271;
 
-// src/commands/login.ts
-function base64url(buffer) {
-  return buffer.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-function generateState() {
-  return base64url(randomBytes(16));
-}
-function waitForCallback(port, state) {
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      server.close();
-      reject(new Error("Login timed out after 5 minutes. Please try again."));
-    }, 5 * 60 * 1e3);
-    const server = createServer((req, res) => {
-      const url = new URL(req.url, `http://localhost:${port}`);
-      if (url.pathname === "/callback") {
-        const apiKey = url.searchParams.get("api_key");
-        const project = url.searchParams.get("project");
-        const returnedState = url.searchParams.get("state");
-        const error = url.searchParams.get("error");
-        const errorDescription = url.searchParams.get("error_description");
-        if (error) {
-          res.writeHead(200, { "Content-Type": "text/html" });
-          res.end("<html><body><h1>Login failed</h1><p>You can close this window.</p></body></html>");
-          clearTimeout(timeout);
-          server.close();
-          reject(new Error(errorDescription || error));
-          return;
-        }
-        if (!apiKey || returnedState !== state) {
-          res.writeHead(400, { "Content-Type": "text/html" });
-          res.end("<html><body><h1>Invalid callback</h1><p>Missing API key or state mismatch.</p></body></html>");
-          return;
-        }
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.end("<html><body><h1>Login successful!</h1><p>You can close this window and return to your terminal.</p></body></html>");
-        clearTimeout(timeout);
-        server.close();
-        resolve({ apiKey, project: project || "unknown" });
-      } else {
-        res.writeHead(404);
-        res.end();
-      }
-    });
-    server.listen(port);
-  });
-}
+// src/env.ts
+import { readFileSync, writeFileSync, existsSync } from "fs";
 function loadEnvFile(envPath) {
   const entries = /* @__PURE__ */ new Map();
   if (!existsSync(envPath)) return entries;
@@ -92,12 +50,144 @@ function writeEnvKey(envPath, key, value) {
   writeFileSync(envPath, `${lines.join("\n")}
 `);
 }
+
+// src/commands/login.ts
+function base64url(buffer) {
+  return buffer.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function generateState() {
+  return base64url(randomBytes(16));
+}
+function callbackPage(title, description, variant = "success") {
+  const iconColor = variant === "success" ? "hsl(142 71% 45%)" : "hsl(0 84% 60%)";
+  const icon = variant === "success" ? `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>` : `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} - Openfort CLI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --background: hsl(0 0% 100%);
+      --foreground: hsl(20 14.3% 4.1%);
+      --card: hsl(0 0% 100%);
+      --card-foreground: hsl(20 14.3% 4.1%);
+      --border: hsl(20 5.9% 90%);
+      --muted-foreground: hsl(25 5.3% 44.7%);
+      --radius: 0.3rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: hsl(20 14.3% 4.1%);
+        --foreground: hsl(60 9.1% 97.8%);
+        --card: hsl(20 14.3% 4.1%);
+        --card-foreground: hsl(60 9.1% 97.8%);
+        --border: hsl(12 6.5% 15.1%);
+        --muted-foreground: hsl(24 5.4% 63.9%);
+      }
+    }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .card {
+      background-color: var(--card);
+      color: var(--card-foreground);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 28rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    }
+    .card-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .card-icon { margin-bottom: 0.5rem; }
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.025em;
+    }
+    .card-description {
+      font-size: 0.875rem;
+      color: var(--muted-foreground);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">${icon}</div>
+      <h1 class="card-title">${title}</h1>
+      <p class="card-description">${description}</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+function waitForCallback(port, state) {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      server.close();
+      reject(new Error("Login timed out after 5 minutes. Please try again."));
+    }, 5 * 60 * 1e3);
+    const server = createServer((req, res) => {
+      const url = new URL(req.url, `http://localhost:${port}`);
+      if (url.pathname === "/callback") {
+        const apiKey = url.searchParams.get("api_key");
+        const publishableKey = url.searchParams.get("publishable_key");
+        const projectId = url.searchParams.get("project_id");
+        const project = url.searchParams.get("project");
+        const returnedState = url.searchParams.get("state");
+        const error = url.searchParams.get("error");
+        const errorDescription = url.searchParams.get("error_description");
+        if (error) {
+          res.writeHead(200, { "Content-Type": "text/html" });
+          res.end(callbackPage("Login failed", "Something went wrong. You can close this window.", "error"));
+          clearTimeout(timeout);
+          server.close();
+          reject(new Error(errorDescription || error));
+          return;
+        }
+        if (!apiKey || returnedState !== state) {
+          res.writeHead(400, { "Content-Type": "text/html" });
+          res.end(callbackPage("Invalid callback", "Missing API key or state mismatch. Please try logging in again.", "error"));
+          return;
+        }
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(callbackPage("Login successful!", "You can close this window and return to your terminal."));
+        clearTimeout(timeout);
+        server.close();
+        resolve({ apiKey, publishableKey: publishableKey || void 0, projectId: projectId || void 0, project: project || "unknown" });
+      } else {
+        res.writeHead(404);
+        res.end();
+      }
+    });
+    server.listen(port);
+  });
+}
 var loginConfig = {
-  description: "Log in to Openfort via browser and save your API key to .env",
+  description: "Log in to Openfort via browser and save your API key.",
   output: z2.object({
-    apiKey: z2.string().describe("The API key saved to .env"),
+    apiKey: z2.string().describe("The API key saved to credentials"),
     project: z2.string().describe("The project name"),
-    envPath: z2.string().describe("Path to the .env file")
+    credentialsPath: z2.string().describe("Path to the credentials file")
   }),
   async run(c) {
     const state = generateState();
@@ -110,12 +200,18 @@ var loginConfig = {
     console.log(`  ${authUrl.toString()}
 `);
     console.log("Waiting for authentication...\n");
-    const { apiKey, project } = await waitForCallback(port, state);
-    const envPath = join(process.cwd(), ".env");
-    writeEnvKey(envPath, "OPENFORT_API_KEY", apiKey);
-    console.log(`Saved API key for project "${project}" to ${envPath}`);
+    const { apiKey, publishableKey, projectId, project } = await waitForCallback(port, state);
+    ensureConfigDir();
+    writeEnvKey(CREDENTIALS_PATH, "OPENFORT_API_KEY", apiKey);
+    if (publishableKey) {
+      writeEnvKey(CREDENTIALS_PATH, "OPENFORT_PUBLISHABLE_KEY", publishableKey);
+    }
+    if (projectId) {
+      writeEnvKey(CREDENTIALS_PATH, "OPENFORT_PROJECT_ID", projectId);
+    }
+    console.log(`Saved API key for project "${project}" to ${CREDENTIALS_PATH}`);
     return c.ok(
-      { apiKey, project, envPath },
+      { apiKey, project, credentialsPath: CREDENTIALS_PATH },
       {
         cta: {
           description: "Next steps:",
@@ -208,6 +304,34 @@ evm.command("get", {
     });
   }
 });
+evm.command("sign", {
+  description: "Sign data with an EVM backend wallet.",
+  args: z3.object({
+    id: z3.string().describe("Account ID (acc_...)")
+  }),
+  options: z3.object({
+    data: z3.string().describe("Data to sign (hex-encoded)")
+  }),
+  alias: { data: "d" },
+  output: z3.object({
+    account: z3.string(),
+    signature: z3.string()
+  }),
+  examples: [
+    {
+      args: { id: "acc_abc123" },
+      options: { data: "0x1234abcd" },
+      description: "Sign a message hash with a backend wallet"
+    }
+  ],
+  async run(c) {
+    const signature = await c.var.openfort.accounts.evm.backend.sign({
+      id: c.args.id,
+      data: c.options.data
+    });
+    return c.ok({ account: c.args.id, signature });
+  }
+});
 evm.command("delete", {
   description: "Delete an EVM backend wallet.",
   args: z3.object({
@@ -295,6 +419,31 @@ solana.command("get", {
       address: a.address,
       custody: a.custody
     });
+  }
+});
+solana.command("sign", {
+  description: "Sign data with a Solana backend wallet.",
+  args: z3.object({
+    id: z3.string().describe("Account ID (acc_...)")
+  }),
+  options: z3.object({
+    data: z3.string().describe("Data to sign (base64-encoded)")
+  }),
+  alias: { data: "d" },
+  output: z3.object({
+    account: z3.string(),
+    signature: z3.string()
+  }),
+  examples: [
+    {
+      args: { id: "acc_abc123" },
+      options: { data: "SGVsbG8gV29ybGQ=" },
+      description: "Sign a message with a Solana backend wallet"
+    }
+  ],
+  async run(c) {
+    const signature = await c.var.openfort.accounts.solana.backend.sign(c.args.id, c.options.data);
+    return c.ok({ account: c.args.id, signature });
   }
 });
 solana.command("delete", {
@@ -1335,43 +1484,162 @@ transactions.command("estimate", {
   }
 });
 
+// src/commands/shield.ts
+import { Cli as Cli8, z as z10, Errors } from "incur";
+var SHIELD_API_URL = process.env.OPENFORT_SHIELD_URL || "https://shield.openfort.xyz";
+var shield = Cli8.create("shield", {
+  description: "Manage Shield (embedded wallet) API keys.",
+  vars: varsSchema
+});
+shield.command("create", {
+  description: "Create Shield API keys for embedded wallets.",
+  options: z10.object({
+    project: z10.string().optional().describe("Project ID (pro_...). Defaults to OPENFORT_PROJECT_ID env var.")
+  }),
+  alias: { project: "p" },
+  output: z10.object({
+    message: z10.string(),
+    credentialsPath: z10.string()
+  }),
+  examples: [
+    {
+      options: { project: "pro_abc123" },
+      description: "Create Shield keys for a project"
+    }
+  ],
+  async run(c) {
+    const publishableKey = process.env.OPENFORT_PUBLISHABLE_KEY;
+    if (!publishableKey) {
+      throw new Errors.IncurError({
+        code: "MISSING_PUBLISHABLE_KEY",
+        message: "OPENFORT_PUBLISHABLE_KEY environment variable is required to create Shield keys.",
+        hint: "Run: openfort login"
+      });
+    }
+    const apiKey = process.env.OPENFORT_API_KEY;
+    const environment = apiKey.startsWith("sk_live_") ? "live" : "test";
+    const projectId = c.options.project || process.env.OPENFORT_PROJECT_ID;
+    if (!projectId) {
+      throw new Errors.IncurError({
+        code: "MISSING_PROJECT_ID",
+        message: "Project ID is required. Pass --project or set OPENFORT_PROJECT_ID.",
+        hint: "Run: openfort login"
+      });
+    }
+    const registerRes = await fetch(`${SHIELD_API_URL}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": publishableKey
+      },
+      body: JSON.stringify({
+        name: `${projectId}-${environment}`,
+        generate_encryption_key: true,
+        enable_2fa: false
+      })
+    });
+    if (!registerRes.ok) {
+      const text = await registerRes.text();
+      throw new Errors.IncurError({
+        code: "SHIELD_REGISTER_FAILED",
+        message: `Shield registration failed: ${text}`
+      });
+    }
+    const shieldData = await registerRes.json();
+    if (shieldData.error) {
+      throw new Errors.IncurError({
+        code: "SHIELD_REGISTER_ERROR",
+        message: `Shield registration error: ${shieldData.error}`
+      });
+    }
+    const persistKey = async (type, uuid) => {
+      const res = await fetch(`${API_BASE_URL}/v1/project/apikey`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({ type, uuid })
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Errors.IncurError({
+          code: "PERSIST_KEY_FAILED",
+          message: `Failed to persist ${type} key: ${text}`
+        });
+      }
+    };
+    await Promise.all([
+      persistKey("pk_shield", shieldData.api_key),
+      persistKey("sk_shield", shieldData.api_secret)
+    ]);
+    const linkRes = await fetch(`${SHIELD_API_URL}/project/providers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": shieldData.api_key,
+        "x-api-secret": shieldData.api_secret
+      },
+      body: JSON.stringify({
+        providers: {
+          openfort: {
+            publishable_key: `pk_${environment}_${publishableKey}`
+          }
+        }
+      })
+    });
+    if (!linkRes.ok) {
+      const text = await linkRes.text();
+      throw new Errors.IncurError({
+        code: "SHIELD_LINK_FAILED",
+        message: `Failed to link Openfort provider to Shield: ${text}`
+      });
+    }
+    ensureConfigDir();
+    writeEnvKey(CREDENTIALS_PATH, "SHIELD_PUBLISHABLE_KEY", shieldData.api_key);
+    writeEnvKey(CREDENTIALS_PATH, "SHIELD_SECRET_KEY", shieldData.api_secret);
+    writeEnvKey(CREDENTIALS_PATH, "SHIELD_ENCRYPTION_SHARE", shieldData.encryption_part);
+    return c.ok({ message: `Shield keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH });
+  }
+});
+
 // src/commands/users.ts
-import { Cli as Cli8, z as z10 } from "incur";
-var userItem = z10.object({
-  id: z10.string(),
-  createdAt: z10.number(),
-  name: z10.string(),
-  email: z10.string().nullable(),
-  emailVerified: z10.boolean(),
-  phoneNumber: z10.string().nullable(),
-  phoneNumberVerified: z10.boolean(),
-  isAnonymous: z10.boolean().optional(),
-  linkedAccounts: z10.array(z10.object({
-    provider: z10.string(),
-    createdAt: z10.number(),
-    updatedAt: z10.number(),
-    accountId: z10.string().optional(),
-    chainType: z10.string().optional(),
-    connectorType: z10.string().optional(),
-    walletClientType: z10.string().optional()
+import { Cli as Cli9, z as z11 } from "incur";
+var userItem = z11.object({
+  id: z11.string(),
+  createdAt: z11.number(),
+  name: z11.string(),
+  email: z11.string().nullable(),
+  emailVerified: z11.boolean(),
+  phoneNumber: z11.string().nullable(),
+  phoneNumberVerified: z11.boolean(),
+  isAnonymous: z11.boolean().optional(),
+  linkedAccounts: z11.array(z11.object({
+    provider: z11.string(),
+    createdAt: z11.number(),
+    updatedAt: z11.number(),
+    accountId: z11.string().optional(),
+    chainType: z11.string().optional(),
+    connectorType: z11.string().optional(),
+    walletClientType: z11.string().optional()
   }))
 });
-var users = Cli8.create("users", {
+var users = Cli9.create("users", {
   description: "Manage authenticated users.",
   vars: varsSchema
 });
 users.command("list", {
   description: "List users.",
-  options: z10.object({
-    limit: z10.number().optional().describe("Max results"),
-    skip: z10.number().optional().describe("Offset"),
-    email: z10.string().optional().describe("Filter by email"),
-    name: z10.string().optional().describe("Filter by name")
+  options: z11.object({
+    limit: z11.number().optional().describe("Max results"),
+    skip: z11.number().optional().describe("Offset"),
+    email: z11.string().optional().describe("Filter by email"),
+    name: z11.string().optional().describe("Filter by name")
   }),
   alias: { limit: "l" },
-  output: z10.object({
-    data: z10.array(userItem),
-    total: z10.number()
+  output: z11.object({
+    data: z11.array(userItem),
+    total: z11.number()
   }),
   async run(c) {
     const res = await c.var.openfort.iam.users.list({
@@ -1398,8 +1666,8 @@ users.command("list", {
 });
 users.command("get", {
   description: "Get a user by ID.",
-  args: z10.object({
-    id: z10.string().describe("User ID (usr_...)")
+  args: z11.object({
+    id: z11.string().describe("User ID (usr_...)")
   }),
   output: userItem,
   async run(c) {
@@ -1419,12 +1687,12 @@ users.command("get", {
 });
 users.command("delete", {
   description: "Delete a user.",
-  args: z10.object({
-    id: z10.string().describe("User ID (usr_...)")
+  args: z11.object({
+    id: z11.string().describe("User ID (usr_...)")
   }),
-  output: z10.object({
-    id: z10.string(),
-    deleted: z10.boolean()
+  output: z11.object({
+    id: z11.string(),
+    deleted: z11.boolean()
   }),
   async run(c) {
     const res = await c.var.openfort.iam.users.delete(c.args.id);
@@ -1432,8 +1700,134 @@ users.command("delete", {
   }
 });
 
+// src/commands/wallet-keys.ts
+import { randomBytes as randomBytes2, subtle } from "crypto";
+import { Cli as Cli10, z as z12, Errors as Errors2 } from "incur";
+function arrayBufferToBase64(buffer) {
+  return Buffer.from(buffer).toString("base64");
+}
+function arrayBufferToBase64Url(buffer) {
+  return Buffer.from(buffer).toString("base64url");
+}
+function stringToArrayBuffer(str) {
+  return new TextEncoder().encode(str).buffer;
+}
+function formatPEMBody(base64) {
+  return base64.match(/.{1,64}/g)?.join("\n") || base64;
+}
+function sortObjectKeys(obj) {
+  if (obj === null || typeof obj !== "object") return obj;
+  if (Array.isArray(obj)) return obj.map(sortObjectKeys);
+  const sorted = {};
+  for (const key of Object.keys(obj).sort()) {
+    sorted[key] = sortObjectKeys(obj[key]);
+  }
+  return sorted;
+}
+async function generateKeyPair() {
+  const keyPair = await subtle.generateKey(
+    { name: "ECDSA", namedCurve: "P-256" },
+    true,
+    ["sign", "verify"]
+  );
+  const spki = await subtle.exportKey("spki", keyPair.publicKey);
+  const pkcs8 = await subtle.exportKey("pkcs8", keyPair.privateKey);
+  return {
+    publicKey: formatPEMBody(arrayBufferToBase64(spki)),
+    privateKey: formatPEMBody(arrayBufferToBase64(pkcs8)),
+    privateKeyCrypto: keyPair.privateKey
+  };
+}
+async function signWalletAuthJwt(privateKey, method, path, body) {
+  const sortedJson = JSON.stringify(sortObjectKeys(body));
+  const hashBuffer = await subtle.digest("SHA-256", stringToArrayBuffer(sortedJson));
+  const reqHash = Buffer.from(hashBuffer).toString("hex");
+  const now = Math.floor(Date.now() / 1e3);
+  const jti = randomBytes2(16).toString("hex");
+  const header = { alg: "ES256", typ: "JWT" };
+  const payload = {
+    uris: [`${method.toUpperCase()} ${path}`],
+    reqHash,
+    iat: now,
+    nbf: now,
+    jti
+  };
+  const headerB64 = arrayBufferToBase64Url(stringToArrayBuffer(JSON.stringify(header)));
+  const payloadB64 = arrayBufferToBase64Url(stringToArrayBuffer(JSON.stringify(payload)));
+  const signingInput = `${headerB64}.${payloadB64}`;
+  const signature = await subtle.sign(
+    { name: "ECDSA", hash: { name: "SHA-256" } },
+    privateKey,
+    stringToArrayBuffer(signingInput)
+  );
+  return `${signingInput}.${arrayBufferToBase64Url(signature)}`;
+}
+var walletKeys = Cli10.create("wallet-keys", {
+  description: "Manage backend wallet keys.",
+  vars: varsSchema
+});
+walletKeys.command("create", {
+  description: "Create backend wallet keys (ECDSA P-256).",
+  output: z12.object({
+    message: z12.string(),
+    credentialsPath: z12.string()
+  }),
+  examples: [
+    {
+      description: "Create backend wallet keys and save to credentials"
+    }
+  ],
+  async run(c) {
+    const apiKey = process.env.OPENFORT_API_KEY;
+    const { publicKey, privateKey, privateKeyCrypto } = await generateKeyPair();
+    const publicKeyPEM = `-----BEGIN PUBLIC KEY-----
+${publicKey}
+-----END PUBLIC KEY-----`;
+    const path = "/v2/accounts/backend/register-secret";
+    const bodyWithoutToken = { publicKey: publicKeyPEM };
+    const jwt = await signWalletAuthJwt(privateKeyCrypto, "POST", path, bodyWithoutToken);
+    const registerRes = await fetch(`${API_BASE_URL}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        ...bodyWithoutToken,
+        walletAuthToken: jwt
+      })
+    });
+    if (!registerRes.ok) {
+      const text = await registerRes.text();
+      throw new Errors2.IncurError({
+        code: "REGISTER_SECRET_FAILED",
+        message: `Failed to register wallet secret: ${text}`
+      });
+    }
+    const storeRes = await fetch(`${API_BASE_URL}/v1/project/apikey`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({ type: "pk_wallet", uuid: publicKey })
+    });
+    if (!storeRes.ok) {
+      const text = await storeRes.text();
+      throw new Errors2.IncurError({
+        code: "STORE_KEY_FAILED",
+        message: `Failed to store wallet key reference: ${text}`
+      });
+    }
+    ensureConfigDir();
+    writeEnvKey(CREDENTIALS_PATH, "OPENFORT_WALLET_PUBLIC_KEY", publicKey);
+    writeEnvKey(CREDENTIALS_PATH, "OPENFORT_WALLET_SECRET", privateKey);
+    return c.ok({ message: `Backend wallet keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH });
+  }
+});
+
 // src/cli.ts
-var cli = Cli9.create("openfort", {
+var cli = Cli11.create("openfort", {
   version: "0.1.0",
   description: "Openfort CLI \u2014 manage wallets, policies, and transactions.",
   vars: varsSchema,
@@ -1456,7 +1850,7 @@ cli.use(async (c, next) => {
   }
   const apiKey = process.env.OPENFORT_API_KEY;
   if (!apiKey) {
-    throw new Errors.IncurError({
+    throw new Errors3.IncurError({
       code: "MISSING_API_KEY",
       message: "OPENFORT_API_KEY environment variable is required.",
       hint: "Run: openfort login"
@@ -1469,7 +1863,7 @@ cli.use(async (c, next) => {
   }));
   await next();
 });
-cli.command(accounts).command(contracts).command(paymasters).command(policies).command(sponsorship).command(subscriptions).command(transactions).command(users);
+cli.command(accounts).command(contracts).command(paymasters).command(policies).command(shield).command(sponsorship).command(subscriptions).command(transactions).command(users).command(walletKeys);
 var cli_default = cli;
 export {
   cli_default as default

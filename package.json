@@ -7,6 +7,7 @@
     "openfort": "./dist/bin.js",
     "openfort.src": "./src/bin.ts"
   },
+  "files": ["dist"],
   "main": "./dist/cli.js",
   "scripts": {
     "dev": "node --import tsx src/bin.ts",

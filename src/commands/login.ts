@@ -1,8 +1,8 @@
 import { randomBytes } from 'node:crypto'
 import { createServer } from 'node:http'
-import { join } from 'node:path'
 import { z } from 'incur'
 import { AUTH_PAGE_URL, CLI_CALLBACK_PORT } from '../constants.js'
+import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
 import { writeEnvKey } from '../env.js'
 
 function base64url(buffer: Buffer): string {
@@ -151,11 +151,11 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
 
 
 export const loginConfig = {
-  description: 'Log in to Openfort via browser and save your API key to .env',
+  description: 'Log in to Openfort via browser and save your API key.',
   output: z.object({
-    apiKey: z.string().describe('The API key saved to .env'),
+    apiKey: z.string().describe('The API key saved to credentials'),
     project: z.string().describe('The project name'),
-    envPath: z.string().describe('Path to the .env file'),
+    credentialsPath: z.string().describe('Path to the credentials file'),
   }),
   async run(c: any) {
     const state = generateState()
@@ -174,20 +174,20 @@ export const loginConfig = {
     // Wait for auth page to redirect back with api_key
     const { apiKey, publishableKey, projectId, project } = await waitForCallback(port, state)
 
-    // Write to .env
-    const envPath = join(process.cwd(), '.env')
-    writeEnvKey(envPath, 'OPENFORT_API_KEY', apiKey)
+    // Write to global credentials file
+    ensureConfigDir()
+    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_API_KEY', apiKey)
     if (publishableKey) {
-      writeEnvKey(envPath, 'OPENFORT_PUBLISHABLE_KEY', publishableKey)
+      writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_PUBLISHABLE_KEY', publishableKey)
     }
     if (projectId) {
-      writeEnvKey(envPath, 'OPENFORT_PROJECT_ID', projectId)
+      writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_PROJECT_ID', projectId)
     }
 
-    console.log(`Saved API key for project "${project}" to ${envPath}`)
+    console.log(`Saved API key for project "${project}" to ${CREDENTIALS_PATH}`)
 
     return c.ok(
-      { apiKey, project, envPath },
+      { apiKey, project, credentialsPath: CREDENTIALS_PATH },
       {
         cta: {
           description: 'Next steps:',
