@@ -87,6 +87,35 @@ evm.command('get', {
   },
 })
 
+evm.command('sign', {
+  description: 'Sign data with an EVM backend wallet.',
+  args: z.object({
+    id: z.string().describe('Account ID (acc_...)'),
+  }),
+  options: z.object({
+    data: z.string().describe('Data to sign (hex-encoded)'),
+  }),
+  alias: { data: 'd' },
+  output: z.object({
+    account: z.string(),
+    signature: z.string(),
+  }),
+  examples: [
+    {
+      args: { id: 'acc_abc123' },
+      options: { data: '0x1234abcd' },
+      description: 'Sign a message hash with a backend wallet',
+    },
+  ],
+  async run(c) {
+    const signature = await c.var.openfort.accounts.evm.backend.sign({
+      id: c.args.id,
+      data: c.options.data,
+    })
+    return c.ok({ account: c.args.id, signature })
+  },
+})
+
 evm.command('delete', {
   description: 'Delete an EVM backend wallet.',
   args: z.object({
@@ -180,6 +209,32 @@ solana.command('get', {
       address: a.address,
       custody: a.custody,
     })
+  },
+})
+
+solana.command('sign', {
+  description: 'Sign data with a Solana backend wallet.',
+  args: z.object({
+    id: z.string().describe('Account ID (acc_...)'),
+  }),
+  options: z.object({
+    data: z.string().describe('Data to sign (base64-encoded)'),
+  }),
+  alias: { data: 'd' },
+  output: z.object({
+    account: z.string(),
+    signature: z.string(),
+  }),
+  examples: [
+    {
+      args: { id: 'acc_abc123' },
+      options: { data: 'SGVsbG8gV29ybGQ=' },
+      description: 'Sign a message with a Solana backend wallet',
+    },
+  ],
+  async run(c) {
+    const signature = await c.var.openfort.accounts.solana.backend.sign(c.args.id, c.options.data)
+    return c.ok({ account: c.args.id, signature })
   },
 })
 
