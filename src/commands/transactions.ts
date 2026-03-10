@@ -41,6 +41,10 @@ transactions.command('list', {
     skip: z.number().optional().describe('Offset'),
   }),
   alias: { limit: 'l' },
+  examples: [
+    { description: 'List all transactions' },
+    { options: { limit: 10 }, description: 'List last 10 transactions' },
+  ],
   output: z.object({
     data: z.array(z.object({
       id: z.string(),
@@ -81,11 +85,20 @@ transactions.command('create', {
   examples: [
     {
       options: {
-        account: 'acc_...',
+        account: 'acc_1a2b3c4d',
         chainId: 137,
-        interactions: '[{"to":"0x1234...","data":"0x","value":"0"}]',
+        interactions: '[{"to":"0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359","data":"0xa9059cbb000000...","value":"0"}]',
       },
-      description: 'Create a transaction on Polygon',
+      description: 'Transfer USDC on Polygon',
+    },
+    {
+      options: {
+        account: 'acc_1a2b3c4d',
+        chainId: 137,
+        interactions: '[{"to":"0x742d35Cc6634C0532925a3b844Bc9e7595f92cD5","value":"1000000000000000000"}]',
+        policy: 'ply_1a2b3c4d',
+      },
+      description: 'Send 1 MATIC with gas sponsorship',
     },
   ],
   async run(c) {
@@ -125,6 +138,9 @@ transactions.command('get', {
   args: z.object({
     id: z.string().describe('Transaction intent ID (tin_...)'),
   }),
+  examples: [
+    { args: { id: 'tin_1a2b3c4d' }, description: 'Get transaction status and receipt' },
+  ],
   output: transactionIntentItem,
   async run(c) {
     const t = await c.var.openfort.transactionIntents.get(c.args.id)
@@ -151,23 +167,37 @@ transactions.command('sign', {
     signature: z.string().describe('Hex signature'),
     optimistic: z.boolean().optional().describe('Return before on-chain confirmation'),
   }),
+  examples: [
+    { args: { id: 'tin_1a2b3c4d' }, options: { signature: '0xabcd1234...' }, description: 'Sign and broadcast a transaction' },
+    { args: { id: 'tin_1a2b3c4d' }, options: { signature: '0xabcd1234...', optimistic: true }, description: 'Sign without waiting for on-chain confirmation' },
+  ],
   output: transactionIntentItem,
   async run(c) {
     const res = await c.var.openfort.transactionIntents.signature(c.args.id, {
       signature: c.options.signature,
       optimistic: c.options.optimistic,
     })
-    return c.ok({
-      id: res.id,
-      createdAt: res.createdAt,
-      updatedAt: res.updatedAt,
-      chainId: res.chainId,
-      abstractionType: res.abstractionType,
-      userOperationHash: res.userOperationHash,
-      response: res.response,
-      interactions: res.interactions,
-      nextAction: res.nextAction,
-    })
+    return c.ok(
+      {
+        id: res.id,
+        createdAt: res.createdAt,
+        updatedAt: res.updatedAt,
+        chainId: res.chainId,
+        abstractionType: res.abstractionType,
+        userOperationHash: res.userOperationHash,
+        response: res.response,
+        interactions: res.interactions,
+        nextAction: res.nextAction,
+      },
+      {
+        cta: {
+          description: 'Next steps:',
+          commands: [
+            { command: `transactions get ${res.id}`, description: 'Check transaction status' },
+          ],
+        },
+      },
+    )
   },
 })
 
@@ -179,6 +209,12 @@ transactions.command('estimate', {
     interactions: z.string().describe('Interactions as JSON'),
     policy: z.string().optional().describe('Policy ID for gas sponsorship'),
   }),
+  examples: [
+    {
+      options: { account: 'acc_1a2b3c4d', chainId: 137, interactions: '[{"to":"0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359","data":"0xa9059cbb...","value":"0"}]' },
+      description: 'Estimate gas for a USDC transfer on Polygon',
+    },
+  ],
   output: z.object({
     estimatedTXGas: z.string(),
     estimatedTXGasFee: z.string(),

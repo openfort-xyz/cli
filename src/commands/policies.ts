@@ -21,6 +21,10 @@ policies.command('list', {
     enabled: z.boolean().optional().describe('Filter by enabled status'),
   }),
   alias: { limit: 'l' },
+  examples: [
+    { description: 'List all policies' },
+    { options: { scope: 'project' as const, enabled: true }, description: 'List enabled project-scope policies' },
+  ],
   output: z.object({
     data: z.array(z.object({
       id: z.string(),
@@ -119,6 +123,9 @@ policies.command('get', {
   args: z.object({
     id: z.string().describe('Policy ID (ply_...)'),
   }),
+  examples: [
+    { args: { id: 'ply_1a2b3c4d' }, description: 'Get policy details with rules' },
+  ],
   output: z.object({
     id: z.string(),
     createdAt: z.number(),
@@ -155,6 +162,10 @@ policies.command('update', {
     priority: z.number().optional().describe('New priority'),
     rules: z.string().optional().describe('New rules as JSON string'),
   }),
+  examples: [
+    { args: { id: 'ply_1a2b3c4d' }, options: { enabled: false }, description: 'Disable a policy' },
+    { args: { id: 'ply_1a2b3c4d' }, options: { priority: 10 }, description: 'Change policy priority' },
+  ],
   output: z.object({
     id: z.string(),
     createdAt: z.number(),
@@ -186,6 +197,9 @@ policies.command('delete', {
   args: z.object({
     id: z.string().describe('Policy ID (ply_...)'),
   }),
+  examples: [
+    { args: { id: 'ply_1a2b3c4d' }, description: 'Delete a policy' },
+  ],
   output: z.object({
     id: z.string(),
     deleted: z.boolean(),
@@ -202,6 +216,10 @@ policies.command('evaluate', {
     operation: z.string().describe('Operation to evaluate (e.g. signEvmTransaction)'),
     accountId: z.string().optional().describe('Account ID'),
   }),
+  examples: [
+    { options: { operation: 'signEvmTransaction', accountId: 'acc_1a2b3c4d' }, description: 'Check if EVM signing is allowed' },
+    { options: { operation: 'sponsorEvmTransaction' }, description: 'Check if gas sponsorship is allowed' },
+  ],
   output: z.object({
     allowed: z.boolean(),
     reason: z.string(),

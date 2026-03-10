@@ -21,6 +21,9 @@ paymasters.command('create', {
     name: z.string().optional().describe('Paymaster name'),
     url: z.string().optional().describe('Paymaster URL'),
   }),
+  examples: [
+    { options: { address: '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789', name: 'EntryPoint v0.6 Paymaster' }, description: 'Create a paymaster for ERC-4337 v0.6' },
+  ],
   output: paymasterItem,
   async run(c) {
     const res = await c.var.openfort.paymasters.create({
@@ -28,13 +31,24 @@ paymasters.command('create', {
       name: c.options.name,
       url: c.options.url,
     })
-    return c.ok({
-      id: res.id,
-      createdAt: res.createdAt,
-      address: res.address,
-      url: res.url,
-      context: res.context,
-    })
+    return c.ok(
+      {
+        id: res.id,
+        createdAt: res.createdAt,
+        address: res.address,
+        url: res.url,
+        context: res.context,
+      },
+      {
+        cta: {
+          description: 'Next steps:',
+          commands: [
+            { command: `paymasters get ${res.id}`, description: 'View this paymaster' },
+            { command: 'sponsorship create', description: 'Create a fee sponsorship' },
+          ],
+        },
+      },
+    )
   },
 })
 
@@ -43,6 +57,9 @@ paymasters.command('get', {
   args: z.object({
     id: z.string().describe('Paymaster ID (pay_...)'),
   }),
+  examples: [
+    { args: { id: 'pay_1a2b3c4d' }, description: 'Get paymaster details' },
+  ],
   output: paymasterItem,
   async run(c) {
     const p = await c.var.openfort.paymasters.get(c.args.id)
@@ -66,6 +83,9 @@ paymasters.command('update', {
     name: z.string().optional().describe('New name'),
     url: z.string().optional().describe('New URL'),
   }),
+  examples: [
+    { args: { id: 'pay_1a2b3c4d' }, options: { address: '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789', name: 'Updated Paymaster' }, description: 'Update paymaster name' },
+  ],
   output: paymasterItem,
   async run(c) {
     const res = await c.var.openfort.paymasters.update(c.args.id, {
@@ -88,6 +108,9 @@ paymasters.command('delete', {
   args: z.object({
     id: z.string().describe('Paymaster ID (pay_...)'),
   }),
+  examples: [
+    { args: { id: 'pay_1a2b3c4d' }, description: 'Delete a paymaster' },
+  ],
   output: z.object({
     id: z.string(),
     deleted: z.boolean(),
