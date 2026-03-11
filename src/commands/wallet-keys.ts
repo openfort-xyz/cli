@@ -33,6 +33,17 @@ function sortObjectKeys(obj: unknown): unknown {
   return sorted
 }
 
+async function importPrivateKey(base64: string): Promise<CryptoKey> {
+  const binaryDer = Buffer.from(base64, 'base64')
+  return subtle.importKey(
+    'pkcs8',
+    binaryDer,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    false,
+    ['sign']
+  )
+}
+
 async function generateKeyPair() {
   const keyPair = await subtle.generateKey(
     { name: 'ECDSA', namedCurve: 'P-256' },
@@ -112,7 +123,8 @@ walletKeys.command('create', {
 
     // Step 2: Register the public key with the backend
     const path = '/v2/accounts/backend/register-secret'
-    const bodyWithoutToken = { publicKey: publicKeyPEM }
+    const keyId = `ws_${Date.now()}`
+    const bodyWithoutToken = { publicKey: publicKeyPEM, keyId }
 
     const jwt = await signWalletAuthJwt(privateKeyCrypto as unknown as CryptoKey, 'POST', path, bodyWithoutToken)
 
@@ -159,7 +171,135 @@ walletKeys.command('create', {
     ensureConfigDir()
     writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_PUBLIC_KEY', publicKey.replaceAll('\n', ''))
     writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_SECRET', privateKey.replaceAll('\n', ''))
+    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_KEY_ID', keyId)
 
     return c.ok({ message: `Backend wallet keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH })
+  },
+})
+
+walletKeys.command('revoke', {
+  description: 'Revoke the current backend wallet secret.',
+  output: z.object({
+    keyId: z.string(),
+    revoked: z.boolean(),
+    revokedAt: z.number(),
+  }),
+  examples: [
+    {
+      description: 'Revoke the current wallet secret',
+    },
+  ],
+  async run(c) {
+    const apiKey = process.env.OPENFORT_API_KEY!
+    const keyId = process.env.OPENFORT_WALLET_KEY_ID
+    const privateKeyBase64 = process.env.OPENFORT_WALLET_SECRET
+
+    if (!keyId || !privateKeyBase64) {
+      throw new Errors.IncurError({
+        code: 'MISSING_WALLET_KEY',
+        message: 'OPENFORT_WALLET_KEY_ID and OPENFORT_WALLET_SECRET must be set. Create a wallet secret first with `wallet-keys create`.',
+      })
+    }
+
+    const privateKeyCrypto = await importPrivateKey(privateKeyBase64)
+
+    const path = '/v2/accounts/backend/revoke-secret'
+    const body = { keyId }
+
+    const jwt = await signWalletAuthJwt(privateKeyCrypto, 'POST', path, body)
+
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        'x-wallet-auth': jwt,
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Errors.IncurError({
+        code: 'REVOKE_SECRET_FAILED',
+        message: `Failed to revoke wallet secret: ${text}`,
+      })
+    }
+
+    const data = await res.json() as { keyId: string; revoked: boolean; revokedAt: number }
+    return c.ok(data)
+  },
+})
+
+walletKeys.command('rotate', {
+  description: 'Rotate backend wallet secret (generates new ECDSA P-256 key pair).',
+  output: z.object({
+    message: z.string(),
+    credentialsPath: z.string(),
+  }),
+  examples: [
+    {
+      description: 'Rotate wallet secret and save new keys to credentials',
+    },
+  ],
+  async run(c) {
+    const apiKey = process.env.OPENFORT_API_KEY!
+
+    // Step 1: Generate new ECDSA P-256 key pair
+    const { publicKey, privateKey, privateKeyCrypto } = await generateKeyPair()
+    const newPublicKeyPEM = `-----BEGIN PUBLIC KEY-----\n${publicKey}\n-----END PUBLIC KEY-----`
+
+    // Step 2: Call rotate endpoint with JWT proof of the new key
+    const path = '/v2/accounts/backend/rotate-secrets'
+    const newKeyId = `ws_${Date.now()}`
+    const bodyWithoutToken = { newPublicKey: newPublicKeyPEM, newKeyId }
+
+    const jwt = await signWalletAuthJwt(privateKeyCrypto as unknown as CryptoKey, 'POST', path, bodyWithoutToken)
+
+    const rotateRes = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        ...bodyWithoutToken,
+        walletAuthToken: jwt,
+      }),
+    })
+
+    if (!rotateRes.ok) {
+      const text = await rotateRes.text()
+      throw new Errors.IncurError({
+        code: 'ROTATE_SECRET_FAILED',
+        message: `Failed to rotate wallet secret: ${text}`,
+      })
+    }
+
+    // Step 3: Update the key reference in project API keys
+    const storeRes = await fetch(`${API_BASE_URL}/v1/project/apikey`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ type: 'pk_wallet', uuid: publicKey }),
+    })
+
+    if (!storeRes.ok) {
+      const text = await storeRes.text()
+      throw new Errors.IncurError({
+        code: 'STORE_KEY_FAILED',
+        message: `Failed to store rotated wallet key reference: ${text}`,
+      })
+    }
+
+    // Step 4: Save new keys to global credentials file
+    ensureConfigDir()
+    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_PUBLIC_KEY', publicKey.replaceAll('\n', ''))
+    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_SECRET', privateKey.replaceAll('\n', ''))
+    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_KEY_ID', newKeyId)
+
+    return c.ok({ message: `Wallet secret rotated and new keys saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH })
   },
 })
