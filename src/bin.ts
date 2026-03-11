@@ -1,5 +1,4 @@
 import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { CREDENTIALS_PATH } from './config.js'
 
 function loadEnvIntoProcess(filePath: string) {
@@ -18,10 +17,7 @@ function loadEnvIntoProcess(filePath: string) {
   }
 }
 
-// Load local .env first (highest priority after shell env vars)
-loadEnvIntoProcess(join(process.cwd(), '.env'))
-
-// Then load global credentials (fills in anything not already set)
+// Load global credentials (user-specific keys like OPENFORT_API_KEY)
 loadEnvIntoProcess(CREDENTIALS_PATH)
 
 const { default: cli } = await import('./cli.js')

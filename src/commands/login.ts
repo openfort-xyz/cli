@@ -192,7 +192,7 @@ export const loginConfig = {
         cta: {
           description: 'Next steps:',
           commands: [
-            { command: 'accounts list', description: 'List your accounts' },
+            { command: 'accounts evm list', description: 'List your accounts' },
             { command: 'contracts list', description: 'List your contracts' },
             { command: 'policies list', description: 'List your policies' },
           ],

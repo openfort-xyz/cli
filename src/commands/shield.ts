@@ -1,10 +1,10 @@
 import { Cli, z, Errors } from 'incur'
 import { varsSchema } from '../vars.js'
-import { API_BASE_URL } from '../constants.js'
+import { API_BASE_URL, OPENFORT_SHIELD_URL } from '../constants.js'
 import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
 import { writeEnvKey } from '../env.js'
 
-const SHIELD_API_URL = process.env.OPENFORT_SHIELD_URL || 'https://shield.openfort.xyz'
+const SHIELD_API_URL = OPENFORT_SHIELD_URL
 
 export const shield = Cli.create('shield', {
   description: 'Manage Shield (embedded wallet) API keys.',

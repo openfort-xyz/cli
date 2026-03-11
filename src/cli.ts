@@ -1,6 +1,7 @@
 import { Cli, z, Errors } from 'incur'
 import Openfort from '@openfort/openfort-node'
 import { varsSchema } from './vars.js'
+import { API_BASE_URL } from './constants.js'
 import { loginConfig } from './commands/login.js'
 import { accounts } from './commands/accounts.js'
 import { contracts } from './commands/contracts.js'
@@ -19,7 +20,7 @@ const cli = Cli.create('openfort', {
   description: 'Openfort CLI — manage wallets, policies, and transactions.',
   vars: varsSchema,
   env: z.object({
-    OPENFORT_API_KEY: z.string().describe('Openfort secret API key (sk_test_... or sk_live_...)'),
+    OPENFORT_API_KEY: z.string().optional().describe('Openfort secret API key (sk_test_... or sk_live_...)'),
     OPENFORT_WALLET_SECRET: z.string().optional().describe('Wallet encryption secret'),
     OPENFORT_PUBLISHABLE_KEY: z.string().optional().describe('Publishable key for client-side ops'),
     OPENFORT_BASE_URL: z.string().optional().describe('Custom API base URL'),
@@ -59,7 +60,7 @@ cli.use(async (c, next) => {
   c.set('openfort', new Openfort(apiKey, {
     walletSecret: process.env.OPENFORT_WALLET_SECRET,
     publishableKey: process.env.OPENFORT_PUBLISHABLE_KEY,
-    basePath: process.env.OPENFORT_BASE_URL,
+    basePath: API_BASE_URL,
   }))
   await next()
 })

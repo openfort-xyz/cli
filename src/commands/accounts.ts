@@ -1,9 +1,22 @@
-import { Cli, z } from 'incur'
+import { Cli, z, Errors } from 'incur'
 import type {
   GetAccountsV2ChainType,
   GetAccountsV2Custody,
 } from '@openfort/openfort-node'
 import { varsSchema } from '../vars.js'
+
+function requireWalletCredentials() {
+  const missing: string[] = []
+  if (!process.env.OPENFORT_WALLET_SECRET) missing.push('OPENFORT_WALLET_SECRET')
+  if (!process.env.OPENFORT_PUBLISHABLE_KEY) missing.push('OPENFORT_PUBLISHABLE_KEY')
+  if (missing.length > 0) {
+    throw new Errors.IncurError({
+      code: 'MISSING_CREDENTIALS',
+      message: `Missing required credentials: ${missing.join(', ')}`,
+      hint: 'Run: openfort wallet-keys create',
+    })
+  }
+}
 
 // -- EVM sub-CLI --
 
@@ -23,6 +36,7 @@ evm.command('create', {
     custody: z.string().describe('Custody type'),
   }),
   async run(c) {
+    requireWalletCredentials()
     const account = await c.var.openfort.accounts.evm.backend.create()
     return c.ok(
       { id: account.id, address: account.address, custody: account.custody },
@@ -118,6 +132,7 @@ evm.command('sign', {
     },
   ],
   async run(c) {
+    requireWalletCredentials()
     const signature = await c.var.openfort.accounts.evm.backend.sign({
       id: c.args.id,
       data: c.options.data,
@@ -195,6 +210,7 @@ evm.command('sign', {
     signature: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const signature = await c.var.openfort.accounts.evm.backend.sign({
       id: c.args.id,
       data: c.options.data,
@@ -217,6 +233,7 @@ evm.command('import', {
     custody: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const account = await c.var.openfort.accounts.evm.backend.import({
       privateKey: c.options.privateKey,
     })
@@ -240,6 +257,7 @@ evm.command('export', {
     privateKey: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const privateKey = await c.var.openfort.accounts.evm.backend.export({
       id: c.args.id,
     })
@@ -307,6 +325,7 @@ solana.command('create', {
     custody: z.string().describe('Custody type'),
   }),
   async run(c) {
+    requireWalletCredentials()
     const account = await c.var.openfort.accounts.solana.backend.create()
     return c.ok(
       { id: account.id, address: account.address, custody: account.custody },
@@ -400,6 +419,7 @@ solana.command('sign', {
     },
   ],
   async run(c) {
+    requireWalletCredentials()
     const signature = await c.var.openfort.accounts.solana.backend.sign(c.args.id, c.options.data)
     return c.ok({ account: c.args.id, signature })
   },
@@ -438,6 +458,7 @@ solana.command('sign', {
     signature: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const signature = await c.var.openfort.accounts.solana.backend.sign(c.args.id, c.options.data)
     return c.ok({ signature })
   },
@@ -457,6 +478,7 @@ solana.command('import', {
     custody: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const account = await c.var.openfort.accounts.solana.backend.import({
       privateKey: c.options.privateKey,
     })
@@ -480,6 +502,7 @@ solana.command('export', {
     privateKey: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const privateKey = await c.var.openfort.accounts.solana.backend.export({
       id: c.args.id,
     })
