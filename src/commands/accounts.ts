@@ -166,9 +166,10 @@ evm.command('update', {
   }),
   options: z.object({
     chainId: z.number().describe('Chain ID to deploy on'),
+    implementationType: z.string().describe('Smart account implementation type we will update to'),
   }),
   examples: [
-    { args: { id: 'acc_1a2b3c4d' }, options: { chainId: 8453 }, description: 'Upgrade to delegated account on Base' },
+    { args: { id: 'acc_1a2b3c4d' }, options: { chainId: 8453, implementationType: 'CaliburV9' }, description: 'Upgrade to delegated account on Base' },
   ],
   output: z.object({
     id: z.string(),
@@ -184,6 +185,7 @@ evm.command('update', {
       walletId: account.walletId,
       chainId: c.options.chainId,
       accountId: account.id,
+      implementationType: c.options.implementationType,
     })
     return c.ok({
       id: res.id,
