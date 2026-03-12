@@ -88,6 +88,42 @@ evm.command('list', {
   },
 })
 
+evm.command('list-delegated', {
+  description: 'List EVM delegated accounts.',
+  options: z.object({
+    limit: z.number().optional().describe('Max results'),
+    skip: z.number().optional().describe('Offset'),
+  }),
+  alias: { limit: 'l' },
+  examples: [
+    { description: 'List all EVM delegated accounts' },
+    { options: { limit: 5 }, description: 'Show first 5 accounts' },
+  ],
+  output: z.object({
+    accounts: z.array(z.object({
+      id: z.string(),
+      address: z.string(),
+      custody: z.string(),
+    })),
+    total: z.number().optional(),
+  }),
+  async run(c) {
+    const res = await c.var.openfort.accounts.evm.list({
+      accountType: 'Delegated Account',
+      limit: c.options.limit,
+      skip: c.options.skip,
+    })
+    return c.ok({
+      accounts: res.data.map(a => ({
+        id: a.id,
+        address: a.address,
+        custody: a.custody,
+      })),
+      total: res.total,
+    })
+  },
+})
+
 evm.command('get', {
   description: 'Get an EVM backend wallet by ID or address.',
   args: z.object({
