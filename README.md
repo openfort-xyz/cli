@@ -1,40 +1,16 @@
-![Illustration_02](https://github.com/user-attachments/assets/7733bc34-9fa7-4e43-bde0-bbbf5518738c)
-
-
-<div align="center">
-  <h4>
-    <a href="https://www.openfort.io/">
-      Website
-    </a>
-    <span> | </span>
-    <a href="https://www.openfort.io/docs/overview/building-with-cli">
-      Documentation
-    </a>
-    <span> | </span>
-    <a href="https://x.com/openfort_hq">
-      X
-    </a>
-  </h4>
-</div>
-
 # Openfort CLI
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Documentation](https://img.shields.io/badge/docs-openfort.io-blue)](https://www.openfort.io/docs/overview/building-with-cli)
-[![Version](https://img.shields.io/npm/v/@openfort/cli.svg)](https://www.npmjs.org/package/@openfort/cli)
+The official CLI for [Openfort](https://openfort.io).
 
-**Manage wallets, policies, and transactions from the terminal.** CLI for Openfort's wallet infrastructure.
+Built for humans, AI agents, and CI/CD pipelines.
 
-## Features
-- 💼 **Account Management** — create and list smart accounts
-- 📜 **Contracts** — register and manage on-chain contracts
-- ⚡ **Transactions** — send and estimate transactions
-- 🔐 **Session Keys** — create and manage session keys
-- 💸 **Gas Sponsorship** — configure policies and sponsorship rules
-- 👥 **Users** — manage users and wallet keys
-- 🔒 **Shield** — wallet encryption and recovery
-- 🔔 **Subscriptions** — set up webhooks and event subscriptions
-- 🤖 **AI-friendly** — works as an MCP tool for LLM agents
+ ██████╗ ██████╗ ███████╗███╗   ██╗███████╗ ██████╗ ██████╗ ████████╗
+██╔═══██╗██╔══██╗██╔════╝████╗  ██║██╔════╝██╔═══██╗██╔══██╗╚══██╔══╝
+██║   ██║██████╔╝█████╗  ██╔██╗ ██║█████╗  ██║   ██║██████╔╝   ██║   
+██║   ██║██╔═══╝ ██╔══╝  ██║╚██╗██║██╔══╝  ██║   ██║██╔══██╗   ██║   
+╚██████╔╝██║     ███████╗██║ ╚████║██║     ╚██████╔╝██║  ██║   ██║   
+ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═══╝╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝   
+
 
 ## Quick Start
 
