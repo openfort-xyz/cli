@@ -80,6 +80,7 @@ transactions.command('create', {
     chainId: z.number().describe('Chain ID'),
     interactions: z.string().describe('Interactions as JSON: [{"to":"0x...","data":"0x...","value":"0"}]'),
     policy: z.string().optional().describe('Policy ID for gas sponsorship'),
+    signedAuthorization: z.string().optional().describe('Signed EIP-7702 authorization hex (for delegated accounts)'),
   }),
   output: transactionIntentItem,
   examples: [
@@ -108,6 +109,7 @@ transactions.command('create', {
       chainId: c.options.chainId,
       interactions,
       policy: c.options.policy,
+      signedAuthorization: c.options.signedAuthorization,
     })
     return c.ok(
       {

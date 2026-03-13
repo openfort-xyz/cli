@@ -1,9 +1,22 @@
-import { Cli, z } from 'incur'
+import { Cli, z, Errors } from 'incur'
 import type {
   GetAccountsV2ChainType,
   GetAccountsV2Custody,
 } from '@openfort/openfort-node'
 import { varsSchema } from '../vars.js'
+
+function requireWalletCredentials() {
+  const missing: string[] = []
+  if (!process.env.OPENFORT_WALLET_SECRET) missing.push('OPENFORT_WALLET_SECRET')
+  if (!process.env.OPENFORT_PUBLISHABLE_KEY) missing.push('OPENFORT_PUBLISHABLE_KEY')
+  if (missing.length > 0) {
+    throw new Errors.IncurError({
+      code: 'MISSING_CREDENTIALS',
+      message: `Missing required credentials: ${missing.join(', ')}`,
+      hint: 'Run: openfort wallet-keys create',
+    })
+  }
+}
 
 // -- EVM sub-CLI --
 
@@ -23,6 +36,7 @@ evm.command('create', {
     custody: z.string().describe('Custody type'),
   }),
   async run(c) {
+    requireWalletCredentials()
     const account = await c.var.openfort.accounts.evm.backend.create()
     return c.ok(
       { id: account.id, address: account.address, custody: account.custody },
@@ -74,6 +88,78 @@ evm.command('list', {
   },
 })
 
+evm.command('list-delegated', {
+  description: 'List EVM delegated accounts.',
+  options: z.object({
+    limit: z.number().optional().describe('Max results'),
+    skip: z.number().optional().describe('Offset'),
+  }),
+  alias: { limit: 'l' },
+  examples: [
+    { description: 'List all EVM delegated accounts' },
+    { options: { limit: 5 }, description: 'Show first 5 accounts' },
+  ],
+  output: z.object({
+    accounts: z.array(z.object({
+      id: z.string(),
+      address: z.string(),
+      custody: z.string(),
+    })),
+    total: z.number().optional(),
+  }),
+  async run(c) {
+    const res = await c.var.openfort.accounts.evm.list({
+      accountType: 'Delegated Account',
+      limit: c.options.limit,
+      skip: c.options.skip,
+    })
+    return c.ok({
+      accounts: res.data.map(a => ({
+        id: a.id,
+        address: a.address,
+        custody: a.custody,
+      })),
+      total: res.total,
+    })
+  },
+})
+
+evm.command('list-smart', {
+  description: 'List EVM smart accounts.',
+  options: z.object({
+    limit: z.number().optional().describe('Max results'),
+    skip: z.number().optional().describe('Offset'),
+  }),
+  alias: { limit: 'l' },
+  examples: [
+    { description: 'List all EVM smart accounts' },
+    { options: { limit: 5 }, description: 'Show first 5 accounts' },
+  ],
+  output: z.object({
+    accounts: z.array(z.object({
+      id: z.string(),
+      address: z.string(),
+      custody: z.string(),
+    })),
+    total: z.number().optional(),
+  }),
+  async run(c) {
+    const res = await c.var.openfort.accounts.evm.list({
+      accountType: 'Smart Account',
+      limit: c.options.limit,
+      skip: c.options.skip,
+    })
+    return c.ok({
+      accounts: res.data.map(a => ({
+        id: a.id,
+        address: a.address,
+        custody: a.custody,
+      })),
+      total: res.total,
+    })
+  },
+})
+
 evm.command('get', {
   description: 'Get an EVM backend wallet by ID or address.',
   args: z.object({
@@ -94,6 +180,36 @@ evm.command('get', {
       address: a.address,
       custody: a.custody,
     })
+  },
+})
+
+evm.command('sign', {
+  description: 'Sign data with an EVM backend wallet.',
+  args: z.object({
+    id: z.string().describe('Account ID (acc_...)'),
+  }),
+  options: z.object({
+    data: z.string().describe('Data to sign (hex-encoded)'),
+  }),
+  alias: { data: 'd' },
+  output: z.object({
+    account: z.string(),
+    signature: z.string(),
+  }),
+  examples: [
+    {
+      args: { id: 'acc_abc123' },
+      options: { data: '0x1234abcd' },
+      description: 'Sign a message hash with a backend wallet',
+    },
+  ],
+  async run(c) {
+    requireWalletCredentials()
+    const signature = await c.var.openfort.accounts.evm.backend.sign({
+      id: c.args.id,
+      data: c.options.data,
+    })
+    return c.ok({ account: c.args.id, signature })
   },
 })
 
@@ -122,9 +238,10 @@ evm.command('update', {
   }),
   options: z.object({
     chainId: z.number().describe('Chain ID to deploy on'),
+    implementationType: z.string().describe('Smart account implementation type we will update to'),
   }),
   examples: [
-    { args: { id: 'acc_1a2b3c4d' }, options: { chainId: 8453 }, description: 'Upgrade to delegated account on Base' },
+    { args: { id: 'acc_1a2b3c4d' }, options: { chainId: 8453, implementationType: 'CaliburV9' }, description: 'Upgrade to delegated account on Base' },
   ],
   output: z.object({
     id: z.string(),
@@ -140,6 +257,7 @@ evm.command('update', {
       walletId: account.walletId,
       chainId: c.options.chainId,
       accountId: account.id,
+      implementationType: c.options.implementationType,
     })
     return c.ok({
       id: res.id,
@@ -147,7 +265,16 @@ evm.command('update', {
       accountType: res.accountType,
       chainId: res.chainId,
       chainType: res.chainType,
-    })
+    },
+      {
+        cta: {
+          description: 'Next steps:',
+          commands: [
+            { command: `accounts evm list-delegated`, description: 'To see all accounts which were updated to delegated ones' },
+          ],
+        },
+      },
+    )
   },
 })
 
@@ -166,6 +293,7 @@ evm.command('sign', {
     signature: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const signature = await c.var.openfort.accounts.evm.backend.sign({
       id: c.args.id,
       data: c.options.data,
@@ -188,6 +316,7 @@ evm.command('import', {
     custody: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const account = await c.var.openfort.accounts.evm.backend.import({
       privateKey: c.options.privateKey,
     })
@@ -211,6 +340,7 @@ evm.command('export', {
     privateKey: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const privateKey = await c.var.openfort.accounts.evm.backend.export({
       id: c.args.id,
     })
@@ -278,6 +408,7 @@ solana.command('create', {
     custody: z.string().describe('Custody type'),
   }),
   async run(c) {
+    requireWalletCredentials()
     const account = await c.var.openfort.accounts.solana.backend.create()
     return c.ok(
       { id: account.id, address: account.address, custody: account.custody },
@@ -350,6 +481,33 @@ solana.command('get', {
   },
 })
 
+solana.command('sign', {
+  description: 'Sign data with a Solana backend wallet.',
+  args: z.object({
+    id: z.string().describe('Account ID (acc_...)'),
+  }),
+  options: z.object({
+    data: z.string().describe('Data to sign (base64-encoded)'),
+  }),
+  alias: { data: 'd' },
+  output: z.object({
+    account: z.string(),
+    signature: z.string(),
+  }),
+  examples: [
+    {
+      args: { id: 'acc_abc123' },
+      options: { data: 'SGVsbG8gV29ybGQ=' },
+      description: 'Sign a message with a Solana backend wallet',
+    },
+  ],
+  async run(c) {
+    requireWalletCredentials()
+    const signature = await c.var.openfort.accounts.solana.backend.sign(c.args.id, c.options.data)
+    return c.ok({ account: c.args.id, signature })
+  },
+})
+
 solana.command('delete', {
   description: 'Delete a Solana backend wallet.',
   args: z.object({
@@ -383,6 +541,7 @@ solana.command('sign', {
     signature: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const signature = await c.var.openfort.accounts.solana.backend.sign(c.args.id, c.options.data)
     return c.ok({ signature })
   },
@@ -402,6 +561,7 @@ solana.command('import', {
     custody: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const account = await c.var.openfort.accounts.solana.backend.import({
       privateKey: c.options.privateKey,
     })
@@ -425,6 +585,7 @@ solana.command('export', {
     privateKey: z.string(),
   }),
   async run(c) {
+    requireWalletCredentials()
     const privateKey = await c.var.openfort.accounts.solana.backend.export({
       id: c.args.id,
     })
