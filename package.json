@@ -7,23 +7,35 @@
     "openfort": "./dist/bin.js",
     "openfort.src": "./src/bin.ts"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/cli.js",
   "scripts": {
     "dev": "node --import tsx src/bin.ts",
     "build": "tsup src/bin.ts src/cli.ts --format esm --clean",
     "openfort": "node --import tsx src/bin.ts",
-    "skills": "pnpm openfort skills add"
+    "skills": "pnpm openfort skills add",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "pnpm build && changeset publish"
   },
   "dependencies": {
-    "@openfort/openfort-node": "^0.10.1",
-    "incur": "^0.3.0"
+    "@openfort/openfort-node": "^0.10.2",
+    "incur": "^0.3.2"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "^2.29.7",
     "@types/node": "latest",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
-  "packageManager": "pnpm@10.16.1"
+  "packageManager": "pnpm@10.32.1",
+  "pnpm": {
+    "overrides": {
+      "hono": ">=4.12.7"
+    }
+  }
 }
