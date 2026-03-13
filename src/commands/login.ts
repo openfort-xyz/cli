@@ -192,9 +192,7 @@ export const loginConfig = {
         cta: {
           description: 'Next steps:',
           commands: [
-            { command: 'accounts evm list', description: 'List your accounts' },
-            { command: 'contracts list', description: 'List your contracts' },
-            { command: 'policies list', description: 'List your policies' },
+            { command: `wallet-keys create`, description: 'Create and save wallet keys necessary for backend wallet creation' },
           ],
         },
       },

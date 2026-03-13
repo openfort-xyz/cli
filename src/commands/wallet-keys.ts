@@ -173,7 +173,17 @@ walletKeys.command('create', {
     writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_SECRET', privateKey.replaceAll('\n', ''))
     writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_KEY_ID', keyId)
 
-    return c.ok({ message: `Backend wallet keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH })
+    return c.ok(
+      { message: `Backend wallet keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH },
+      {
+        cta: {
+          description: 'Next steps:',
+          commands: [
+            { command: `shield create`, description: 'Create and save Shield API keys' },
+          ],
+        },
+      },
+    )
   },
 })
 

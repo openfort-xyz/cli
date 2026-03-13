@@ -139,6 +139,18 @@ shield.command('create', {
     writeEnvKey(CREDENTIALS_PATH, 'SHIELD_SECRET_KEY', shieldData.api_secret)
     writeEnvKey(CREDENTIALS_PATH, 'SHIELD_ENCRYPTION_SHARE', shieldData.encryption_part)
 
-    return c.ok({ message: `Shield keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH })
+    return c.ok(
+      { message: `Shield keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH },
+      {
+        cta: {
+          description: 'Next steps:',
+          commands: [
+            { command: 'accounts evm list', description: 'List your accounts' },
+            { command: 'contracts list', description: 'List your contracts' },
+            { command: 'policies list', description: 'List your policies' },
+          ],
+        },
+      },
+    )
   },
 })

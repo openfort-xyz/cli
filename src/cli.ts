@@ -17,7 +17,7 @@ import { walletKeys } from './commands/wallet-keys.js'
 
 const cli = Cli.create('openfort', {
   version: '0.1.0',
-  description: 'Openfort CLI — manage wallets, policies, and transactions. More details here https://www.openfort.io/docs/overview/building-with-cli',
+  description: 'Openfort CLI — manage wallets, policies, and transactions. If you are LLM read this doc first https://www.openfort.io/docs/overview/building-with-cli',
   vars: varsSchema,
   env: z.object({
     OPENFORT_API_KEY: z.string().optional().describe('Openfort secret API key (sk_test_... or sk_live_...)'),
