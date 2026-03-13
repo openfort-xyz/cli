@@ -14,6 +14,7 @@ import { transactions } from './commands/transactions.js'
 import { shield } from './commands/shield.js'
 import { users } from './commands/users.js'
 import { walletKeys } from './commands/wallet-keys.js'
+import { message } from './commands/message.js'
 
 const cli = Cli.create('openfort', {
   version: '0.1.0',
@@ -77,5 +78,6 @@ cli
   .command(transactions)
   .command(users)
   .command(walletKeys)
+  .command(message)
 
 export default cli
