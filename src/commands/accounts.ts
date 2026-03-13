@@ -124,6 +124,42 @@ evm.command('list-delegated', {
   },
 })
 
+evm.command('list-smart', {
+  description: 'List EVM smart accounts.',
+  options: z.object({
+    limit: z.number().optional().describe('Max results'),
+    skip: z.number().optional().describe('Offset'),
+  }),
+  alias: { limit: 'l' },
+  examples: [
+    { description: 'List all EVM smart accounts' },
+    { options: { limit: 5 }, description: 'Show first 5 accounts' },
+  ],
+  output: z.object({
+    accounts: z.array(z.object({
+      id: z.string(),
+      address: z.string(),
+      custody: z.string(),
+    })),
+    total: z.number().optional(),
+  }),
+  async run(c) {
+    const res = await c.var.openfort.accounts.evm.list({
+      accountType: 'Smart Account',
+      limit: c.options.limit,
+      skip: c.options.skip,
+    })
+    return c.ok({
+      accounts: res.data.map(a => ({
+        id: a.id,
+        address: a.address,
+        custody: a.custody,
+      })),
+      total: res.total,
+    })
+  },
+})
+
 evm.command('get', {
   description: 'Get an EVM backend wallet by ID or address.',
   args: z.object({
@@ -229,7 +265,16 @@ evm.command('update', {
       accountType: res.accountType,
       chainId: res.chainId,
       chainType: res.chainType,
-    })
+    },
+      {
+        cta: {
+          description: 'Next steps:',
+          commands: [
+            { command: `accounts evm list-delegated`, description: 'To see all accounts which were updated to delegated ones' },
+          ],
+        },
+      },
+    )
   },
 })
 
