@@ -13,13 +13,18 @@
     "dev": "node --import tsx src/bin.ts",
     "build": "tsup src/bin.ts src/cli.ts --format esm --clean",
     "openfort": "node --import tsx src/bin.ts",
-    "skills": "pnpm openfort skills add"
+    "skills": "pnpm openfort skills add",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "pnpm build && changeset publish"
   },
   "dependencies": {
     "@openfort/openfort-node": "^0.10.1",
     "incur": "^0.3.0"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "^2.29.7",
     "@types/node": "latest",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
