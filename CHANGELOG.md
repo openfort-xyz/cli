@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.4
+
+### Patch Changes
+
+- [#14](https://github.com/openfort-xyz/cli/pull/14) [`133e5dd`](https://github.com/openfort-xyz/cli/commit/133e5dd7cfe46922e75071afd16d69b60b4fab77) Thanks [@n00m4d](https://github.com/n00m4d)! - Add hash message command
+
 ## 0.1.3
 
 ### Patch Changes
