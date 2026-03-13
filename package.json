@@ -2,6 +2,10 @@
   "name": "@openfort/cli",
   "version": "0.1.1",
   "description": "Openfort CLI — manage wallets, policies, and transactions from the terminal.",
+  "author": "Openfort (https://www.openfort.io)",
+  "bugs": "https://github.com/openfort-xyz/cli/issues",
+  "homepage": "https://github.com/openfort-xyz/cli#readme",
+  "repository": "github.com/openfort-xyz/cli.git",
   "type": "module",
   "bin": {
     "openfort": "./dist/bin.js",
