@@ -17,7 +17,7 @@
   "main": "./dist/cli.js",
   "scripts": {
     "dev": "node --import tsx src/bin.ts",
-    "build": "tsup src/bin.ts src/cli.ts --format esm --clean",
+    "build": "tsup",
     "openfort": "node --import tsx src/bin.ts",
     "skills": "pnpm openfort skills add",
     "changeset": "changeset",
