@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.3
+
+### Patch Changes
+
+- [#12](https://github.com/openfort-xyz/cli/pull/12) [`e407ba1`](https://github.com/openfort-xyz/cli/commit/e407ba1a06d911d67f788c2fc14a52a4f938063c) Thanks [@n00m4d](https://github.com/n00m4d)! - Fix build
+
 ## 0.1.2
 
 ### Patch Changes
