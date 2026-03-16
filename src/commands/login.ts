@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import { createServer } from 'node:http'
+import open from 'open'
 import { z } from 'incur'
 import { AUTH_PAGE_URL, CLI_CALLBACK_PORT } from '../constants.js'
 import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
@@ -168,8 +169,14 @@ export const loginConfig = {
     authUrl.searchParams.set('state', state)
 
     if (!c.agent) {
-      console.log('\nOpen this URL in your browser to log in:\n')
-      console.log(`  ${authUrl.toString()}\n`)
+      const url = authUrl.toString()
+      console.log(`\n> Visit ${url}`)
+
+      try {
+        const browserProcess = await open(url)
+        browserProcess.on('error', () => {})
+      } catch {}
+
       console.log('Waiting for authentication...\n')
     }
 
