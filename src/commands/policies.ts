@@ -3,13 +3,12 @@ import type {
   CreatePolicyV2RequestScope,
   ListPoliciesScopeItem,
 } from '@openfort/openfort-node'
-import { varsSchema } from '../vars.js'
+import { getOpenfort } from '../client.js'
 
 const policyScopes = ['project', 'account', 'transaction'] as const
 
 export const policies = Cli.create('policies', {
   description: 'Manage rules and conditions for backend wallets and fee sponsorship.',
-  vars: varsSchema,
 })
 
 policies.command('list', {
@@ -41,7 +40,7 @@ policies.command('list', {
     const scopeFilter: ListPoliciesScopeItem[] | undefined = c.options.scope
       ? [c.options.scope]
       : undefined
-    const res = await c.var.openfort.policies.list({
+    const res = await getOpenfort().policies.list({
       limit: c.options.limit,
       skip: c.options.skip,
       scope: scopeFilter,
@@ -98,7 +97,7 @@ policies.command('create', {
   async run(c) {
     const rules: Array<Record<string, unknown>> = JSON.parse(c.options.rules)
     const scope: CreatePolicyV2RequestScope = c.options.scope
-    const res = await c.var.openfort.policies.create({
+    const res = await getOpenfort().policies.create({
       scope,
       description: c.options.description,
       priority: c.options.priority,
@@ -145,7 +144,7 @@ policies.command('get', {
     rules: z.array(z.record(z.string(), z.unknown())),
   }),
   async run(c) {
-    const p = await c.var.openfort.policies.get(c.args.id)
+    const p = await getOpenfort().policies.get(c.args.id)
     return c.ok({
       id: p.id,
       createdAt: p.createdAt,
@@ -183,7 +182,7 @@ policies.command('update', {
     priority: z.number(),
   }),
   async run(c) {
-    const res = await c.var.openfort.policies.update(c.args.id, {
+    const res = await getOpenfort().policies.update(c.args.id, {
       description: c.options.description,
       enabled: c.options.enabled,
       priority: c.options.priority,
@@ -213,7 +212,7 @@ policies.command('delete', {
     deleted: z.boolean(),
   }),
   async run(c) {
-    const res = await c.var.openfort.policies.delete(c.args.id)
+    const res = await getOpenfort().policies.delete(c.args.id)
     return c.ok({ id: res.id, deleted: res.deleted })
   },
 })
@@ -237,7 +236,7 @@ policies.command('evaluate', {
     matchedRuleId: z.string().optional(),
   }),
   async run(c) {
-    const res = await c.var.openfort.policies.evaluate({
+    const res = await getOpenfort().policies.evaluate({
       operation: c.options.operation,
       accountId: c.options.accountId,
     })

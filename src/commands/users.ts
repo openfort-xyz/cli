@@ -1,5 +1,5 @@
 import { Cli, z } from 'incur'
-import { varsSchema } from '../vars.js'
+import { getOpenfort } from '../client.js'
 
 const userItem = z.object({
   id: z.string(),
@@ -23,7 +23,6 @@ const userItem = z.object({
 
 export const users = Cli.create('users', {
   description: 'Manage authenticated users.',
-  vars: varsSchema,
 })
 
 users.command('list', {
@@ -44,7 +43,7 @@ users.command('list', {
     total: z.number(),
   }),
   async run(c) {
-    const res = await c.var.openfort.iam.users.list({
+    const res = await getOpenfort().iam.users.list({
       limit: c.options.limit,
       skip: c.options.skip,
       email: c.options.email,
@@ -77,7 +76,7 @@ users.command('get', {
   ],
   output: userItem,
   async run(c) {
-    const u = await c.var.openfort.iam.users.get(c.args.id)
+    const u = await getOpenfort().iam.users.get(c.args.id)
     return c.ok({
       id: u.id,
       createdAt: u.createdAt,
@@ -105,7 +104,7 @@ users.command('delete', {
     deleted: z.boolean(),
   }),
   async run(c) {
-    const res = await c.var.openfort.iam.users.delete(c.args.id)
+    const res = await getOpenfort().iam.users.delete(c.args.id)
     return c.ok({ id: res.id, deleted: res.deleted })
   },
 })

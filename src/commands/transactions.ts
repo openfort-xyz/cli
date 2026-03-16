@@ -1,5 +1,5 @@
 import { Cli, z } from 'incur'
-import { varsSchema } from '../vars.js'
+import { getOpenfort } from '../client.js'
 
 const transactionIntentItem = z.object({
   id: z.string(),
@@ -31,7 +31,6 @@ const transactionIntentItem = z.object({
 
 export const transactions = Cli.create('transactions', {
   description: 'Manage transaction intents.',
-  vars: varsSchema,
 })
 
 transactions.command('list', {
@@ -56,7 +55,7 @@ transactions.command('list', {
     total: z.number(),
   }),
   async run(c) {
-    const res = await c.var.openfort.transactionIntents.list({
+    const res = await getOpenfort().transactionIntents.list({
       limit: c.options.limit,
       skip: c.options.skip,
     })
@@ -104,7 +103,7 @@ transactions.command('create', {
   ],
   async run(c) {
     const interactions: Array<{ to?: string; data?: string; value?: string }> = JSON.parse(c.options.interactions)
-    const res = await c.var.openfort.transactionIntents.create({
+    const res = await getOpenfort().transactionIntents.create({
       account: c.options.account,
       chainId: c.options.chainId,
       interactions,
@@ -145,7 +144,7 @@ transactions.command('get', {
   ],
   output: transactionIntentItem,
   async run(c) {
-    const t = await c.var.openfort.transactionIntents.get(c.args.id)
+    const t = await getOpenfort().transactionIntents.get(c.args.id)
     return c.ok({
       id: t.id,
       createdAt: t.createdAt,
@@ -175,7 +174,7 @@ transactions.command('sign', {
   ],
   output: transactionIntentItem,
   async run(c) {
-    const res = await c.var.openfort.transactionIntents.signature(c.args.id, {
+    const res = await getOpenfort().transactionIntents.signature(c.args.id, {
       signature: c.options.signature,
       optimistic: c.options.optimistic,
     })
@@ -226,7 +225,7 @@ transactions.command('estimate', {
   }),
   async run(c) {
     const interactions: Array<{ to?: string; data?: string; value?: string }> = JSON.parse(c.options.interactions)
-    const res = await c.var.openfort.transactionIntents.estimateCost({
+    const res = await getOpenfort().transactionIntents.estimateCost({
       account: c.options.account,
       chainId: c.options.chainId,
       interactions,

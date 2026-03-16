@@ -1,5 +1,5 @@
 import { Cli, z } from 'incur'
-import { varsSchema } from '../vars.js'
+import { getOpenfort } from '../client.js'
 
 const sessionItem = z.object({
   id: z.string(),
@@ -18,7 +18,6 @@ const sessionItem = z.object({
 
 export const sessions = Cli.create('sessions', {
   description: 'Manage session keys.',
-  vars: varsSchema,
 })
 
 sessions.command('list', {
@@ -42,7 +41,7 @@ sessions.command('list', {
     total: z.number(),
   }),
   async run(c) {
-    const res = await c.var.openfort.sessions.list({
+    const res = await getOpenfort().sessions.list({
       player: c.options.player,
       limit: c.options.limit,
       skip: c.options.skip,
@@ -84,7 +83,7 @@ sessions.command('create', {
   ],
   output: sessionItem,
   async run(c) {
-    const res = await c.var.openfort.sessions.create({
+    const res = await getOpenfort().sessions.create({
       address: c.options.address,
       chainId: c.options.chainId,
       validAfter: c.options.validAfter,
@@ -129,7 +128,7 @@ sessions.command('get', {
   ],
   output: sessionItem,
   async run(c) {
-    const s = await c.var.openfort.sessions.get(c.args.id)
+    const s = await getOpenfort().sessions.get(c.args.id)
     return c.ok({
       id: s.id,
       createdAt: s.createdAt,
@@ -157,7 +156,7 @@ sessions.command('revoke', {
   ],
   output: sessionItem,
   async run(c) {
-    const res = await c.var.openfort.sessions.revoke({
+    const res = await getOpenfort().sessions.revoke({
       address: c.options.address,
       chainId: c.options.chainId,
       player: c.options.player,
@@ -191,7 +190,7 @@ sessions.command('sign', {
   ],
   output: sessionItem,
   async run(c) {
-    const res = await c.var.openfort.sessions.signature(c.args.id, {
+    const res = await getOpenfort().sessions.signature(c.args.id, {
       signature: c.options.signature,
       optimistic: c.options.optimistic,
     })

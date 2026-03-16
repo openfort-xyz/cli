@@ -1,6 +1,5 @@
 import { randomBytes, subtle, type webcrypto } from 'node:crypto'
 import { Cli, z, Errors } from 'incur'
-import { varsSchema } from '../vars.js'
 import { API_BASE_URL } from '../constants.js'
 import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
 import { requireApiKey, writeEnvKey } from '../env.js'
@@ -109,7 +108,6 @@ interface RevokeSecretResponse {
 
 export const backendWallet = Cli.create('backend-wallet', {
   description: 'Configure backend wallet signing keys.',
-  vars: varsSchema,
 })
 
 backendWallet.command('setup', {

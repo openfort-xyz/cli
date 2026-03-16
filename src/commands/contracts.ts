@@ -1,5 +1,5 @@
 import { Cli, z } from 'incur'
-import { varsSchema } from '../vars.js'
+import { getOpenfort } from '../client.js'
 
 const contractItem = z.object({
   id: z.string(),
@@ -14,7 +14,6 @@ const contractItem = z.object({
 
 export const contracts = Cli.create('contracts', {
   description: 'Manage smart contracts.',
-  vars: varsSchema,
 })
 
 contracts.command('list', {
@@ -33,7 +32,7 @@ contracts.command('list', {
     total: z.number(),
   }),
   async run(c) {
-    const res = await c.var.openfort.contracts.list({
+    const res = await getOpenfort().contracts.list({
       limit: c.options.limit,
       skip: c.options.skip,
     })
@@ -73,7 +72,7 @@ contracts.command('create', {
     },
   ],
   async run(c) {
-    const res = await c.var.openfort.contracts.create({
+    const res = await getOpenfort().contracts.create({
       name: c.options.name,
       address: c.options.address,
       chainId: c.options.chainId,
@@ -113,7 +112,7 @@ contracts.command('get', {
   ],
   output: contractItem,
   async run(c) {
-    const ct = await c.var.openfort.contracts.get(c.args.id)
+    const ct = await getOpenfort().contracts.get(c.args.id)
     return c.ok({
       id: ct.id,
       createdAt: ct.createdAt,
@@ -143,7 +142,7 @@ contracts.command('update', {
   ],
   output: contractItem,
   async run(c) {
-    const res = await c.var.openfort.contracts.update(c.args.id, {
+    const res = await getOpenfort().contracts.update(c.args.id, {
       name: c.options.name,
       address: c.options.address,
       chainId: c.options.chainId,
@@ -175,7 +174,7 @@ contracts.command('delete', {
     deleted: z.boolean(),
   }),
   async run(c) {
-    const res = await c.var.openfort.contracts.delete(c.args.id)
+    const res = await getOpenfort().contracts.delete(c.args.id)
     return c.ok({ id: res.id, deleted: res.deleted })
   },
 })

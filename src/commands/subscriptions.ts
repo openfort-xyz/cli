@@ -1,5 +1,5 @@
 import { Cli, z } from 'incur'
-import { varsSchema } from '../vars.js'
+import { getOpenfort } from '../client.js'
 
 const apiTopics = [
   'transaction_intent.broadcast',
@@ -22,7 +22,6 @@ const apiTriggerTypes = ['webhook', 'email'] as const
 
 const triggers = Cli.create('triggers', {
   description: 'Manage subscription triggers.',
-  vars: varsSchema,
 })
 
 triggers.command('list', {
@@ -42,7 +41,7 @@ triggers.command('list', {
     })),
   }),
   async run(c) {
-    const res = await c.var.openfort.triggers.list(c.args.subscriptionId)
+    const res = await getOpenfort().triggers.list(c.args.subscriptionId)
     return c.ok({
       data: res.data.map((t) => ({
         id: t.id,
@@ -77,7 +76,7 @@ triggers.command('create', {
     type: z.string(),
   }),
   async run(c) {
-    const res = await c.var.openfort.triggers.create(c.args.subscriptionId, {
+    const res = await getOpenfort().triggers.create(c.args.subscriptionId, {
       target: c.options.target,
       type: c.options.type,
     })
@@ -106,7 +105,7 @@ triggers.command('get', {
     type: z.string(),
   }),
   async run(c) {
-    const t = await c.var.openfort.triggers.get(c.args.subscriptionId, c.args.triggerId)
+    const t = await getOpenfort().triggers.get(c.args.subscriptionId, c.args.triggerId)
     return c.ok({
       id: t.id,
       createdAt: t.createdAt,
@@ -130,7 +129,7 @@ triggers.command('delete', {
     deleted: z.boolean(),
   }),
   async run(c) {
-    const res = await c.var.openfort.triggers.delete(c.args.subscriptionId, c.args.triggerId)
+    const res = await getOpenfort().triggers.delete(c.args.subscriptionId, c.args.triggerId)
     return c.ok({ id: res.id, deleted: res.deleted })
   },
 })
@@ -139,7 +138,6 @@ triggers.command('delete', {
 
 export const subscriptions = Cli.create('subscriptions', {
   description: 'Manage webhook subscriptions.',
-  vars: varsSchema,
 })
 
 subscriptions.command('list', {
@@ -161,7 +159,7 @@ subscriptions.command('list', {
     total: z.number(),
   }),
   async run(c) {
-    const res = await c.var.openfort.subscriptions.list()
+    const res = await getOpenfort().subscriptions.list()
     return c.ok({
       data: res.data.map((s) => ({
         id: s.id,
@@ -201,7 +199,7 @@ subscriptions.command('create', {
   }),
   async run(c) {
     const parsedTriggers: Array<{ type: string; target: string }> = JSON.parse(c.options.triggers)
-    const res = await c.var.openfort.subscriptions.create({
+    const res = await getOpenfort().subscriptions.create({
       topic: c.options.topic,
       triggers: parsedTriggers,
     })
@@ -244,7 +242,7 @@ subscriptions.command('get', {
     })),
   }),
   async run(c) {
-    const s = await c.var.openfort.subscriptions.get(c.args.id)
+    const s = await getOpenfort().subscriptions.get(c.args.id)
     return c.ok({
       id: s.id,
       createdAt: s.createdAt,
@@ -267,7 +265,7 @@ subscriptions.command('delete', {
     deleted: z.boolean(),
   }),
   async run(c) {
-    const res = await c.var.openfort.subscriptions.delete(c.args.id)
+    const res = await getOpenfort().subscriptions.delete(c.args.id)
     return c.ok({ id: res.id, deleted: res.deleted })
   },
 })

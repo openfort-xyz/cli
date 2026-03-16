@@ -1,10 +1,8 @@
 import { Cli, z } from 'incur'
 import { keccak256, toBytes } from 'viem'
-import { varsSchema } from '../vars.js'
 
 export const message = Cli.create('message', {
   description: 'Message utilities.',
-  vars: varsSchema,
 })
 
 message.command('hash', {
