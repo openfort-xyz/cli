@@ -98,22 +98,23 @@ async function signWalletAuthJwt(
 
 // --- CLI command ---
 
-export const walletKeys = Cli.create('wallet-keys', {
-  description: 'Manage backend wallet keys.',
+export const backendWallet = Cli.create('backend-wallet', {
+  description: 'Configure backend wallet signing keys.',
   vars: varsSchema,
 })
 
-walletKeys.command('create', {
-  description: 'Create backend wallet keys (ECDSA P-256).',
+backendWallet.command('setup', {
+  description: 'Generate and register backend wallet signing keys (ECDSA P-256).',
   output: z.object({
     message: z.string(),
     credentialsPath: z.string(),
   }),
   examples: [
     {
-      description: 'Create backend wallet keys and save to credentials',
+      description: 'Set up backend wallet signing keys and save to credentials',
     },
   ],
+  hint: 'Requires OPENFORT_API_KEY. Run "openfort login" first.',
   async run(c) {
     const apiKey = process.env.OPENFORT_API_KEY!
 
@@ -145,6 +146,7 @@ walletKeys.command('create', {
       throw new Errors.IncurError({
         code: 'REGISTER_SECRET_FAILED',
         message: `Failed to register wallet secret: ${text}`,
+        retryable: true,
       })
     }
 
@@ -163,6 +165,7 @@ walletKeys.command('create', {
       throw new Errors.IncurError({
         code: 'STORE_KEY_FAILED',
         message: `Failed to store wallet key reference: ${text}`,
+        retryable: true,
       })
     }
 
@@ -179,7 +182,7 @@ walletKeys.command('create', {
         cta: {
           description: 'Next steps:',
           commands: [
-            { command: `shield create`, description: 'Create and save Shield API keys' },
+            { command: `embedded-wallet setup`, description: 'Set up embedded wallet keys' },
           ],
         },
       },
@@ -187,8 +190,8 @@ walletKeys.command('create', {
   },
 })
 
-walletKeys.command('revoke', {
-  description: 'Revoke the current backend wallet secret.',
+backendWallet.command('revoke', {
+  description: 'Revoke the current backend wallet signing secret.',
   output: z.object({
     keyId: z.string(),
     revoked: z.boolean(),
@@ -199,6 +202,7 @@ walletKeys.command('revoke', {
       description: 'Revoke the current wallet secret',
     },
   ],
+  hint: 'Requires OPENFORT_WALLET_KEY_ID and OPENFORT_WALLET_SECRET. Run "openfort backend-wallet setup" first.',
   async run(c) {
     const apiKey = process.env.OPENFORT_API_KEY!
     const keyId = process.env.OPENFORT_WALLET_KEY_ID
@@ -207,7 +211,8 @@ walletKeys.command('revoke', {
     if (!keyId || !privateKeyBase64) {
       throw new Errors.IncurError({
         code: 'MISSING_WALLET_KEY',
-        message: 'OPENFORT_WALLET_KEY_ID and OPENFORT_WALLET_SECRET must be set. Create a wallet secret first with `wallet-keys create`.',
+        message: 'OPENFORT_WALLET_KEY_ID and OPENFORT_WALLET_SECRET must be set. Run `backend-wallet setup` first.',
+        hint: 'Run: openfort backend-wallet setup',
       })
     }
 
@@ -233,6 +238,7 @@ walletKeys.command('revoke', {
       throw new Errors.IncurError({
         code: 'REVOKE_SECRET_FAILED',
         message: `Failed to revoke wallet secret: ${text}`,
+        retryable: true,
       })
     }
 
@@ -241,8 +247,8 @@ walletKeys.command('revoke', {
   },
 })
 
-walletKeys.command('rotate', {
-  description: 'Rotate backend wallet secret (generates new ECDSA P-256 key pair).',
+backendWallet.command('rotate', {
+  description: 'Rotate backend wallet signing secret (generates new ECDSA P-256 key pair).',
   output: z.object({
     message: z.string(),
     credentialsPath: z.string(),
@@ -252,6 +258,7 @@ walletKeys.command('rotate', {
       description: 'Rotate wallet secret and save new keys to credentials',
     },
   ],
+  hint: 'Requires OPENFORT_API_KEY. Run "openfort login" first.',
   async run(c) {
     const apiKey = process.env.OPENFORT_API_KEY!
 
@@ -283,6 +290,7 @@ walletKeys.command('rotate', {
       throw new Errors.IncurError({
         code: 'ROTATE_SECRET_FAILED',
         message: `Failed to rotate wallet secret: ${text}`,
+        retryable: true,
       })
     }
 
@@ -301,6 +309,7 @@ walletKeys.command('rotate', {
       throw new Errors.IncurError({
         code: 'STORE_KEY_FAILED',
         message: `Failed to store rotated wallet key reference: ${text}`,
+        retryable: true,
       })
     }
 

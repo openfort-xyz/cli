@@ -79,7 +79,7 @@ transactions.command('create', {
     account: z.string().describe('Account ID (acc_...)'),
     chainId: z.number().describe('Chain ID'),
     interactions: z.string().describe('Interactions as JSON: [{"to":"0x...","data":"0x...","value":"0"}]'),
-    policy: z.string().optional().describe('Policy ID for gas sponsorship'),
+    policy: z.string().optional().describe('Fee sponsorship ID (pol_...).'),
     signedAuthorization: z.string().optional().describe('Signed EIP-7702 authorization hex (for delegated accounts)'),
   }),
   output: transactionIntentItem,
@@ -97,9 +97,9 @@ transactions.command('create', {
         account: 'acc_1a2b3c4d',
         chainId: 137,
         interactions: '[{"to":"0x742d35Cc6634C0532925a3b844Bc9e7595f92cD5","value":"1000000000000000000"}]',
-        policy: 'ply_1a2b3c4d',
+        policy: 'pol_1a2b3c4d',
       },
-      description: 'Send 1 MATIC with gas sponsorship',
+      description: 'Send 1 POL with gas sponsorship',
     },
   ],
   async run(c) {
@@ -209,7 +209,7 @@ transactions.command('estimate', {
     account: z.string().describe('Account ID (acc_...)'),
     chainId: z.number().describe('Chain ID'),
     interactions: z.string().describe('Interactions as JSON'),
-    policy: z.string().optional().describe('Policy ID for gas sponsorship'),
+    policy: z.string().optional().describe('Fee sponsorship ID (pol_...)'),
   }),
   examples: [
     {

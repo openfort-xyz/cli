@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { Cli, z, Errors } from 'incur'
 import Openfort from '@openfort/openfort-node'
 import { varsSchema } from './vars.js'
@@ -11,14 +12,17 @@ import { sponsorship } from './commands/sponsorship.js'
 import { subscriptions } from './commands/subscriptions.js'
 import { sessions } from './commands/sessions.js'
 import { transactions } from './commands/transactions.js'
-import { shield } from './commands/shield.js'
+import { embeddedWallet } from './commands/embedded-wallet.js'
 import { users } from './commands/users.js'
-import { walletKeys } from './commands/wallet-keys.js'
+import { backendWallet } from './commands/backend-wallet.js'
 import { message } from './commands/message.js'
 
+const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'))
+
 const cli = Cli.create('openfort', {
-  version: '0.1.0',
-  description: 'Openfort CLI — manage wallets, policies, and transactions. If you are LLM read this doc first https://www.openfort.io/docs/overview/building-with-cli',
+  version: pkg.version,
+  aliases: ['of'],
+  description: 'Openfort CLI — manage wallets, policies, and transactions from the terminal.',
   vars: varsSchema,
   env: z.object({
     OPENFORT_API_KEY: z.string().optional().describe('Openfort secret API key (sk_test_... or sk_live_...)'),
@@ -28,14 +32,17 @@ const cli = Cli.create('openfort', {
   }),
   sync: {
     depth: 2,
-    include: ['accounts', 'transactions', 'policies', 'sponsorship', 'contracts', 'users', 'sessions', 'subscriptions'],
+    include: ['_root', 'accounts', 'transactions', 'policies', 'sponsorship', 'contracts', 'users', 'sessions', 'subscriptions', 'backend-wallet', 'embedded-wallet'],
     suggestions: [
       'create an EVM backend wallet',
       'list all accounts',
-      'create a gas sponsorship policy',
+      'create a policy for gas sponsorship',
       'list users',
       'estimate transaction gas cost',
     ],
+  },
+  mcp: {
+    agents: ['claude-code', 'cursor', 'amp'],
   },
 })
 
@@ -71,13 +78,13 @@ cli
   .command(contracts)
   .command(paymasters)
   .command(policies)
-  .command(shield)
+  .command(embeddedWallet)
   .command(sponsorship)
   .command(sessions)
   .command(subscriptions)
   .command(transactions)
   .command(users)
-  .command(walletKeys)
+  .command(backendWallet)
   .command(message)
 
 export default cli

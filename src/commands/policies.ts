@@ -113,7 +113,7 @@ function mapPolicy(p: { id: string; createdAt: number; scope: string; descriptio
 // --- CLI ---
 
 export const policies = Cli.create('policies', {
-  description: 'Manage access-control policies.',
+  description: 'Manage rules and conditions for backend wallets and fee sponsorship.',
   vars: varsSchema,
 })
 
@@ -204,6 +204,14 @@ policies.command('create', {
         rules: '[{"action":"accept","operation":"sponsorEvmTransaction","criteria":[{"type":"evmNetwork","operator":"in","chainIds":[137]}]}]',
       },
       description: 'Custom rules as JSON (advanced)',
+    },
+    {
+      options: {
+        scope: 'account' as const,
+        description: 'Allow signing for a specific account',
+        rules: '[{"action":"accept","operation":"signEvmTransaction"}]',
+      },
+      description: 'Allow EVM transaction signing',
     },
   ],
   async run(c) {

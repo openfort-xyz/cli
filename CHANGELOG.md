@@ -1,5 +1,23 @@
 # @openfort/cli
 
+## 0.1.7
+
+### Patch Changes
+
+- [#23](https://github.com/openfort-xyz/cli/pull/23) [`e71b1c6`](https://github.com/openfort-xyz/cli/commit/e71b1c6b101aeb27e352b60b922c6d3699bdaeae) Thanks [@jamalavedra](https://github.com/jamalavedra)! - open login url
+
+## 0.1.6
+
+### Patch Changes
+
+- [#21](https://github.com/openfort-xyz/cli/pull/21) [`56f204b`](https://github.com/openfort-xyz/cli/commit/56f204b12ed0494860d283966dce517c676c03cc) Thanks [@jamalavedra](https://github.com/jamalavedra)! - fix pol naming
+
+## 0.1.5
+
+### Patch Changes
+
+- [#18](https://github.com/openfort-xyz/cli/pull/18) [`a1cbb2e`](https://github.com/openfort-xyz/cli/commit/a1cbb2ec248b97f55bcd05392a28717b31275bd3) Thanks [@jamalavedra](https://github.com/jamalavedra)! - improve setup and guide
+
 ## 0.1.4
 
 ### Patch Changes

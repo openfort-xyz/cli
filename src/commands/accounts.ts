@@ -1,22 +1,26 @@
-import { Cli, z, Errors } from 'incur'
+import { Cli, z, Errors, middleware } from 'incur'
 import type {
   GetAccountsV2ChainType,
   GetAccountsV2Custody,
 } from '@openfort/openfort-node'
 import { varsSchema } from '../vars.js'
 
-function requireWalletCredentials() {
+const requireWallet = middleware<typeof varsSchema>((c, next) => {
   const missing: string[] = []
   if (!process.env.OPENFORT_WALLET_SECRET) missing.push('OPENFORT_WALLET_SECRET')
   if (!process.env.OPENFORT_PUBLISHABLE_KEY) missing.push('OPENFORT_PUBLISHABLE_KEY')
   if (missing.length > 0) {
-    throw new Errors.IncurError({
+    return c.error({
       code: 'MISSING_CREDENTIALS',
       message: `Missing required credentials: ${missing.join(', ')}`,
-      hint: 'Run: openfort wallet-keys create',
+      cta: {
+        description: 'Set up wallet credentials:',
+        commands: [{ command: 'backend-wallet setup', description: 'Set up signing keys for backend wallets' }],
+      },
     })
   }
-}
+  return next()
+})
 
 // -- EVM sub-CLI --
 
@@ -28,15 +32,16 @@ const evm = Cli.create('evm', {
 evm.command('create', {
   description: 'Create a new EVM backend wallet.',
   examples: [
-    { description: 'Create a new EVM wallet' },
+    { description: 'Create a new EVM backend wallet (developer custody)' },
   ],
+  hint: 'Requires OPENFORT_WALLET_SECRET and OPENFORT_PUBLISHABLE_KEY.',
+  middleware: [requireWallet],
   output: z.object({
     id: z.string().describe('Account ID'),
     address: z.string().describe('Wallet address'),
     custody: z.string().describe('Custody type'),
   }),
   async run(c) {
-    requireWalletCredentials()
     const account = await c.var.openfort.accounts.evm.backend.create()
     return c.ok(
       { id: account.id, address: account.address, custody: account.custody },
@@ -208,7 +213,7 @@ evm.command('update', {
   }),
   options: z.object({
     chainId: z.number().describe('Chain ID to deploy on'),
-    implementationType: z.string().describe('Smart account implementation type we will update to'),
+    implementationType: z.string().describe('Target implementation type (e.g. CaliburV9)'),
   }),
   examples: [
     { args: { id: 'acc_1a2b3c4d' }, options: { chainId: 8453, implementationType: 'CaliburV9' }, description: 'Upgrade to delegated account on Base' },
@@ -240,7 +245,7 @@ evm.command('update', {
         cta: {
           description: 'Next steps:',
           commands: [
-            { command: `accounts evm list-delegated`, description: 'To see all accounts which were updated to delegated ones' },
+            { command: `accounts evm list-delegated`, description: 'List all delegated accounts' },
           ],
         },
       },
@@ -259,11 +264,12 @@ evm.command('sign', {
   examples: [
     { args: { id: 'acc_1a2b3c4d' }, options: { data: '0xdeadbeef' }, description: 'Sign a message hash' },
   ],
+  hint: 'Requires OPENFORT_WALLET_SECRET and OPENFORT_PUBLISHABLE_KEY.',
+  middleware: [requireWallet],
   output: z.object({
     signature: z.string(),
   }),
   async run(c) {
-    requireWalletCredentials()
     const signature = await c.var.openfort.accounts.evm.backend.sign({
       id: c.args.id,
       data: c.options.data,
@@ -280,13 +286,14 @@ evm.command('import', {
   examples: [
     { options: { privateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' }, description: 'Import a private key' },
   ],
+  hint: 'Requires OPENFORT_WALLET_SECRET and OPENFORT_PUBLISHABLE_KEY.',
+  middleware: [requireWallet],
   output: z.object({
     id: z.string(),
     address: z.string(),
     custody: z.string(),
   }),
   async run(c) {
-    requireWalletCredentials()
     const account = await c.var.openfort.accounts.evm.backend.import({
       privateKey: c.options.privateKey,
     })
@@ -306,11 +313,11 @@ evm.command('export', {
   examples: [
     { args: { id: 'acc_1a2b3c4d' }, description: 'Export private key' },
   ],
+  middleware: [requireWallet],
   output: z.object({
     privateKey: z.string(),
   }),
   async run(c) {
-    requireWalletCredentials()
     const privateKey = await c.var.openfort.accounts.evm.backend.export({
       id: c.args.id,
     })
@@ -326,7 +333,7 @@ evm.command('send-transaction', {
   options: z.object({
     chainId: z.number().describe('Chain ID'),
     interactions: z.string().describe('Interactions as JSON: [{"to":"0x...","data":"0x...","value":"0"}]'),
-    policy: z.string().optional().describe('Policy ID for gas sponsorship (pol_...)'),
+    policy: z.string().optional().describe('Fee sponsorship ID (pol_...)'),
   }),
   examples: [
     {
@@ -338,6 +345,7 @@ evm.command('send-transaction', {
       description: 'Send a gasless transaction on Base',
     },
   ],
+  middleware: [requireWallet],
   output: z.object({
     id: z.string(),
     chainId: z.number(),
@@ -370,15 +378,16 @@ const solana = Cli.create('solana', {
 solana.command('create', {
   description: 'Create a new Solana backend wallet.',
   examples: [
-    { description: 'Create a new Solana wallet' },
+    { description: 'Create a new Solana backend wallet (developer custody)' },
   ],
+  hint: 'Requires OPENFORT_WALLET_SECRET and OPENFORT_PUBLISHABLE_KEY.',
+  middleware: [requireWallet],
   output: z.object({
     id: z.string().describe('Account ID'),
     address: z.string().describe('Wallet address'),
     custody: z.string().describe('Custody type'),
   }),
   async run(c) {
-    requireWalletCredentials()
     const account = await c.var.openfort.accounts.solana.backend.create()
     return c.ok(
       { id: account.id, address: account.address, custody: account.custody },
@@ -460,6 +469,8 @@ solana.command('sign', {
     data: z.string().describe('Data to sign (base64-encoded)'),
   }),
   alias: { data: 'd' },
+  hint: 'Requires OPENFORT_WALLET_SECRET and OPENFORT_PUBLISHABLE_KEY.',
+  middleware: [requireWallet],
   output: z.object({
     account: z.string(),
     signature: z.string(),
@@ -472,7 +483,6 @@ solana.command('sign', {
     },
   ],
   async run(c) {
-    requireWalletCredentials()
     const signature = await c.var.openfort.accounts.solana.backend.sign(c.args.id, c.options.data)
     return c.ok({ account: c.args.id, signature })
   },
@@ -496,27 +506,6 @@ solana.command('delete', {
   },
 })
 
-solana.command('sign', {
-  description: 'Sign data with a Solana backend wallet.',
-  args: z.object({
-    id: z.string().describe('Account ID (acc_...)'),
-  }),
-  options: z.object({
-    data: z.string().describe('Data to sign'),
-  }),
-  examples: [
-    { args: { id: 'acc_1a2b3c4d' }, options: { data: 'hello' }, description: 'Sign a message' },
-  ],
-  output: z.object({
-    signature: z.string(),
-  }),
-  async run(c) {
-    requireWalletCredentials()
-    const signature = await c.var.openfort.accounts.solana.backend.sign(c.args.id, c.options.data)
-    return c.ok({ signature })
-  },
-})
-
 solana.command('import', {
   description: 'Import a private key as a Solana backend wallet.',
   options: z.object({
@@ -525,13 +514,14 @@ solana.command('import', {
   examples: [
     { options: { privateKey: 'abc123...' }, description: 'Import a Solana private key' },
   ],
+  hint: 'Requires OPENFORT_WALLET_SECRET and OPENFORT_PUBLISHABLE_KEY.',
+  middleware: [requireWallet],
   output: z.object({
     id: z.string(),
     address: z.string(),
     custody: z.string(),
   }),
   async run(c) {
-    requireWalletCredentials()
     const account = await c.var.openfort.accounts.solana.backend.import({
       privateKey: c.options.privateKey,
     })
@@ -551,11 +541,11 @@ solana.command('export', {
   examples: [
     { args: { id: 'acc_1a2b3c4d' }, description: 'Export private key' },
   ],
+  middleware: [requireWallet],
   output: z.object({
     privateKey: z.string(),
   }),
   async run(c) {
-    requireWalletCredentials()
     const privateKey = await c.var.openfort.accounts.solana.backend.export({
       id: c.args.id,
     })
@@ -586,6 +576,7 @@ solana.command('transfer', {
       description: 'Transfer 1 USDC on devnet',
     },
   ],
+  middleware: [requireWallet],
   output: z.object({
     signature: z.string(),
   }),
