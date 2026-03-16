@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.8
+
+### Patch Changes
+
+- [#25](https://github.com/openfort-xyz/cli/pull/25) [`c3db2a2`](https://github.com/openfort-xyz/cli/commit/c3db2a21ade2c0af6557023df6fb7b98b130ec6c) Thanks [@jamalavedra](https://github.com/jamalavedra)! - improve types and load of env
+
 ## 0.1.7
 
 ### Patch Changes
