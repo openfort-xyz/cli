@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.9
+
+### Patch Changes
+
+- [#27](https://github.com/openfort-xyz/cli/pull/27) [`e3fb6ce`](https://github.com/openfort-xyz/cli/commit/e3fb6ce5974b86fcbee5d13bf5a654055d909b22) Thanks [@jamalavedra](https://github.com/jamalavedra)! - update init sdk mcp
+
 ## 0.1.8
 
 ### Patch Changes
