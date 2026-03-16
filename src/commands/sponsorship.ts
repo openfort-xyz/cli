@@ -1,9 +1,8 @@
-import { Cli, z, Errors } from 'incur'
-import type { CreatePolicyV2RequestScope, CreatePolicyV2RuleRequest, FeeSponsorshipStrategy, PolicyV2CriterionRequest } from '@openfort/openfort-node'
+import { Cli, z } from 'incur'
+import type { FeeSponsorshipStrategy } from '@openfort/openfort-node'
 import { varsSchema } from '../vars.js'
 
 const sponsorSchemas = ['pay_for_user', 'charge_custom_tokens', 'fixed_rate'] as const
-const sponsorTypes = ['evm', 'svm', 'all'] as const
 
 const sponsorshipItem = z.object({
   id: z.string(),
@@ -24,113 +23,6 @@ const sponsorshipItem = z.object({
 export const sponsorship = Cli.create('sponsorship', {
   description: 'Manage fee sponsorship strategies linked to policies.',
   vars: varsSchema,
-})
-
-sponsorship.command('auto', {
-  description: 'The fastest way to sponsor gas.',
-  options: z.object({
-    type: z.enum(sponsorTypes).default('all').describe('Sponsor type: evm, svm, or all'),
-    chain: z.string().optional().describe('EVM chain IDs, comma-separated (e.g. 137,1,42161)'),
-    network: z.string().optional().describe('Solana networks, comma-separated (e.g. mainnet-beta,devnet)'),
-    name: z.string().optional().describe('Sponsorship name'),
-    strategy: z.enum(sponsorSchemas).default('pay_for_user').describe('Sponsorship strategy'),
-  }),
-  output: z.object({
-    policyId: z.string(),
-    sponsorships: z.array(z.object({
-      id: z.string(),
-      chainId: z.number().nullable(),
-    })),
-    type: z.string(),
-  }),
-  examples: [
-    {
-      options: { chain: '137' },
-      description: 'Sponsor EVM gas on Polygon',
-    },
-    {
-      options: { chain: '137,1,42161', name: 'Multi-chain Sponsor' },
-      description: 'Sponsor EVM gas on Polygon, Ethereum, and Arbitrum',
-    },
-    {
-      options: { type: 'svm' as 'svm' },
-      description: 'Sponsor all Solana transactions',
-    },
-    {
-      options: { type: 'all' as 'all' },
-      description: 'Sponsor all transactions (EVM + Solana)',
-    },
-  ],
-  async run(c) {
-    const chainIds = c.options.chain
-      ? c.options.chain.split(',').map(s => {
-        const n = Number(s.trim())
-        if (Number.isNaN(n)) throw new Errors.IncurError({ code: 'INVALID_CHAIN', message: `Invalid chain ID: ${s}` })
-        return n
-      })
-      : undefined
-    const svmNetworks = c.options.network
-      ? c.options.network.split(',').map(s => s.trim())
-      : undefined
-
-    // Build rules based on type
-    const rules: CreatePolicyV2RuleRequest[] = []
-    const type = c.options.type
-
-    if (type === 'evm' || type === 'all') {
-      const criteria: PolicyV2CriterionRequest[] = chainIds?.length
-        ? [{ type: 'evmNetwork', operator: 'in', chainIds }]
-        : []
-      rules.push({ action: 'accept', operation: 'sponsorEvmTransaction', criteria })
-    }
-    if (type === 'svm' || type === 'all') {
-      const criteria: PolicyV2CriterionRequest[] = svmNetworks?.length
-        ? [{ type: 'solNetwork', operator: 'in', networks: svmNetworks }]
-        : []
-      rules.push({ action: 'accept', operation: 'sponsorSolTransaction', criteria })
-    }
-
-    const chainLabel = chainIds?.length ? ` on chains ${chainIds.join(', ')}` : ''
-    const networkLabel = svmNetworks?.length ? ` on ${svmNetworks.join(', ')}` : ''
-    const description = `Gas sponsorship (${type})${chainLabel}${networkLabel}`
-
-    // Step 1: Create policy
-    const scope: CreatePolicyV2RequestScope = 'project'
-    const policy = await c.var.openfort.policies.create({ scope, description, rules })
-
-    // Step 2: Create fee sponsorship(s) — one per chain, or one without chainId
-    const feeSponsorshipStrategy: FeeSponsorshipStrategy = { sponsorSchema: c.options.strategy }
-    const chainList = chainIds?.length ? chainIds : [undefined]
-    const sponsorships = await Promise.all(
-      chainList.map(async (cid) => {
-        const sp = await c.var.openfort.feeSponsorship.create({
-          policyId: policy.id,
-          name: c.options.name || description,
-          strategy: feeSponsorshipStrategy,
-          chainId: cid,
-        })
-        return { id: sp.id, chainId: sp.chainId }
-      }),
-    )
-
-    return c.ok(
-      {
-        policyId: policy.id,
-        sponsorships,
-        type,
-      },
-      {
-        cta: {
-          description: 'Next steps:',
-          commands: [
-            { command: `sponsorship get ${sponsorships[0].id}`, description: 'View sponsorship details' },
-            { command: `policies get ${policy.id}`, description: 'View policy rules' },
-            { command: 'transactions create', description: 'Create a sponsored transaction' },
-          ],
-        },
-      },
-    )
-  },
 })
 
 sponsorship.command('list', {

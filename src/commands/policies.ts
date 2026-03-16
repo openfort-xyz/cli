@@ -17,65 +17,49 @@ type PolicyTemplate = {
   rules: CreatePolicyV2RuleRequest[]
 }
 
-function buildEvmRules(chainIds?: number[]): CreatePolicyV2RuleRequest[] {
-  const criteria: PolicyV2CriterionRequest[] = chainIds?.length
-    ? [{ type: 'evmNetwork', operator: 'in', chainIds }]
-    : []
-  return [{ action: 'accept', operation: 'sponsorEvmTransaction', criteria }]
+function evmCriteria(chainIds?: number[]): PolicyV2CriterionRequest[] {
+  return chainIds?.length ? [{ type: 'evmNetwork', operator: 'in', chainIds }] : []
 }
 
-function buildSvmRules(networks?: string[]): CreatePolicyV2RuleRequest[] {
-  const criteria: PolicyV2CriterionRequest[] = networks?.length
-    ? [{ type: 'solNetwork', operator: 'in', networks }]
-    : []
-  return [{ action: 'accept', operation: 'sponsorSolTransaction', criteria }]
-}
-
-function buildAllRules(evmChainIds?: number[], svmNetworks?: string[]): CreatePolicyV2RuleRequest[] {
-  return [
-    ...buildEvmRules(evmChainIds),
-    ...buildSvmRules(svmNetworks),
-  ]
-}
-
-function buildSigningRules(evmChainIds?: number[], svmNetworks?: string[]): CreatePolicyV2RuleRequest[] {
-  const evmCriteria: PolicyV2CriterionRequest[] = evmChainIds?.length
-    ? [{ type: 'evmNetwork', operator: 'in', chainIds: evmChainIds }]
-    : []
-  const svmCriteria: PolicyV2CriterionRequest[] = svmNetworks?.length
-    ? [{ type: 'solNetwork', operator: 'in', networks: svmNetworks }]
-    : []
-  return [
-    { action: 'accept', operation: 'signEvmTransaction', criteria: evmCriteria },
-    { action: 'accept', operation: 'sendEvmTransaction', criteria: evmCriteria },
-    { action: 'accept', operation: 'signEvmTypedData', criteria: evmCriteria },
-    { action: 'accept', operation: 'signEvmMessage', criteria: evmCriteria },
-    { action: 'accept', operation: 'signSolTransaction', criteria: svmCriteria },
-    { action: 'accept', operation: 'sendSolTransaction', criteria: svmCriteria },
-    { action: 'accept', operation: 'signSolMessage', criteria: svmCriteria },
-  ]
+function svmCriteria(networks?: string[]): PolicyV2CriterionRequest[] {
+  return networks?.length ? [{ type: 'solNetwork', operator: 'in', networks }] : []
 }
 
 const POLICY_TEMPLATES: Record<string, (chainIds?: number[], svmNetworks?: string[]) => PolicyTemplate> = {
-  'enable-evm': (chainIds) => ({
-    description: chainIds?.length ? `Enable EVM gas sponsorship on chains ${chainIds.join(', ')}` : 'Enable EVM gas sponsorship',
+  'sponsor-evm': (chainIds) => ({
+    description: chainIds?.length ? `Sponsor EVM transactions on chains ${chainIds.join(', ')}` : 'Sponsor all EVM transactions',
     scope: 'project',
-    rules: buildEvmRules(chainIds),
+    rules: [{ action: 'accept', operation: 'sponsorEvmTransaction', criteria: evmCriteria(chainIds) }],
   }),
-  'enable-svm': (_chainIds, svmNetworks) => ({
-    description: svmNetworks?.length ? `Enable Solana gas sponsorship on ${svmNetworks.join(', ')}` : 'Enable Solana gas sponsorship',
+  'sponsor-svm': (_chainIds, svmNetworks) => ({
+    description: svmNetworks?.length ? `Sponsor Solana transactions on ${svmNetworks.join(', ')}` : 'Sponsor all Solana transactions',
     scope: 'project',
-    rules: buildSvmRules(svmNetworks),
+    rules: [{ action: 'accept', operation: 'sponsorSolTransaction', criteria: svmCriteria(svmNetworks) }],
   }),
-  'enable-all': (chainIds, svmNetworks) => ({
-    description: 'Enable gas sponsorship (EVM + Solana)',
+  'sign-evm': (chainIds) => ({
+    description: chainIds?.length ? `Allow EVM signing on chains ${chainIds.join(', ')}` : 'Allow EVM transaction signing',
     scope: 'project',
-    rules: buildAllRules(chainIds, svmNetworks),
+    rules: [{ action: 'accept', operation: 'signEvmTransaction', criteria: evmCriteria(chainIds) }],
   }),
-  'allow-signing': (chainIds, svmNetworks) => ({
-    description: 'Allow all signing operations',
+  'send-evm': (chainIds) => ({
+    description: chainIds?.length ? `Allow EVM send on chains ${chainIds.join(', ')}` : 'Allow EVM transaction send',
     scope: 'project',
-    rules: buildSigningRules(chainIds, svmNetworks),
+    rules: [{ action: 'accept', operation: 'sendEvmTransaction', criteria: evmCriteria(chainIds) }],
+  }),
+  'sign-svm': (_chainIds, svmNetworks) => ({
+    description: svmNetworks?.length ? `Allow Solana signing on ${svmNetworks.join(', ')}` : 'Allow Solana transaction signing',
+    scope: 'project',
+    rules: [{ action: 'accept', operation: 'signSolTransaction', criteria: svmCriteria(svmNetworks) }],
+  }),
+  'send-svm': (_chainIds, svmNetworks) => ({
+    description: svmNetworks?.length ? `Allow Solana send on ${svmNetworks.join(', ')}` : 'Allow Solana transaction send',
+    scope: 'project',
+    rules: [{ action: 'accept', operation: 'sendSolTransaction', criteria: svmCriteria(svmNetworks) }],
+  }),
+  'reject-hash': () => ({
+    description: 'Block all raw hash signing',
+    scope: 'project',
+    rules: [{ action: 'reject', operation: 'signEvmHash', criteria: [] }],
   }),
 }
 
@@ -170,7 +154,7 @@ policies.command('list', {
 policies.command('create', {
   description: 'Create a policy. Use --template for common patterns, or --rules for custom JSON.',
   options: z.object({
-    template: z.enum(TEMPLATE_NAMES).optional().describe('Template: enable-evm, enable-svm, enable-all, allow-signing'),
+    template: z.enum(TEMPLATE_NAMES).optional().describe('Template: sponsor-evm, sponsor-svm, sign-evm, send-evm, sign-svm, send-svm, reject-hash'),
     chain: z.string().optional().describe('EVM chain IDs, comma-separated (e.g. 137,1,42161)'),
     network: z.string().optional().describe('Solana networks, comma-separated (e.g. mainnet-beta,devnet)'),
     scope: z.enum(policyScopes).optional().describe('Policy scope (default: project)'),
@@ -183,20 +167,28 @@ policies.command('create', {
   output: policyOutput,
   examples: [
     {
-      options: { template: 'enable-evm' as 'enable-evm', chain: '137' },
-      description: 'Enable EVM sponsorship on Polygon',
+      options: { template: 'sponsor-evm' as 'sponsor-evm', chain: '137' },
+      description: 'Sponsor EVM gas on Polygon',
     },
     {
-      options: { template: 'enable-all' as 'enable-all' },
-      description: 'Enable sponsorship for all chains',
+      options: { template: 'sponsor-svm' as 'sponsor-svm' },
+      description: 'Sponsor all Solana transactions',
     },
     {
-      options: { template: 'allow-signing' as 'allow-signing', chain: '1,137' },
-      description: 'Allow signing on Ethereum and Polygon',
+      options: { template: 'sign-evm' as 'sign-evm', chain: '1,137' },
+      description: 'Allow EVM signing on Ethereum and Polygon',
+    },
+    {
+      options: { template: 'send-evm' as 'send-evm', chain: '8453' },
+      description: 'Allow EVM send on Base',
+    },
+    {
+      options: { template: 'reject-hash' as 'reject-hash' },
+      description: 'Block all raw hash signing',
     },
     {
       options: { scope: 'project' as const, operation: 'sponsorEvmTransaction', chain: '137,42161' },
-      description: 'Inline flags: enable EVM sponsorship on Polygon and Arbitrum',
+      description: 'Inline: sponsor EVM on Polygon and Arbitrum',
     },
     {
       options: {
@@ -247,7 +239,7 @@ policies.command('create', {
       throw new Errors.IncurError({
         code: 'MISSING_RULES',
         message: 'Provide --template, --operation, or --rules to define policy rules.',
-        hint: 'Examples:\n  openfort policies create --template enable-evm --chain 137\n  openfort policies create --operation sponsorEvmTransaction --chain 137\n  openfort policies create --rules \'[...]\'',
+        hint: 'Examples:\n  openfort policies create --template sponsor-evm --chain 137\n  openfort policies create --template sign-evm --chain 1,137\n  openfort policies create --operation sendEvmTransaction --chain 137\n  openfort policies create --rules \'[...]\'',
       })
     }
 
@@ -266,7 +258,6 @@ policies.command('create', {
           commands: [
             { command: `policies get ${res.id}`, description: 'View this policy' },
             { command: `sponsorship create --policyId ${res.id}`, description: 'Create a fee sponsorship' },
-            { command: `sponsorship auto`, description: 'Enable fee sponsorship (all chains by default)' },
           ],
         },
       },
