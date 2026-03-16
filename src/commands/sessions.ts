@@ -69,7 +69,7 @@ sessions.command('create', {
     player: z.string().optional().describe('Player ID (pla_...)'),
     account: z.string().optional().describe('Account ID (acc_...)'),
     limit: z.number().optional().describe('Max session uses'),
-    policy: z.string().optional().describe('Policy ID for gas sponsorship (pol_...)'),
+    policy: z.string().optional().describe('Policy ID (ply_...) for gas sponsorship'),
     whitelist: z.string().optional().describe('Whitelisted contract addresses as JSON array'),
   }),
   examples: [
@@ -150,7 +150,7 @@ sessions.command('revoke', {
     address: z.string().describe('Session key address to revoke'),
     chainId: z.number().describe('Chain ID'),
     player: z.string().optional().describe('Player ID (pla_...)'),
-    policy: z.string().optional().describe('Policy ID (pol_...)'),
+    policy: z.string().optional().describe('Policy ID (ply_...) for gas sponsorship'),
   }),
   examples: [
     { options: { address: '0x1234...', chainId: 137 }, description: 'Revoke a session key' },

@@ -18,6 +18,7 @@
   "scripts": {
     "dev": "node --import tsx src/bin.ts",
     "build": "tsup",
+    "gen": "pnpm build && incur gen --entry ./dist/cli.js",
     "openfort": "node --import tsx src/bin.ts",
     "skills": "pnpm openfort skills add",
     "changeset": "changeset",

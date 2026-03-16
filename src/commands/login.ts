@@ -167,9 +167,11 @@ export const loginConfig = {
     authUrl.searchParams.set('redirect_uri', redirectUri)
     authUrl.searchParams.set('state', state)
 
-    console.log('\nOpen this URL in your browser to log in:\n')
-    console.log(`  ${authUrl.toString()}\n`)
-    console.log('Waiting for authentication...\n')
+    if (!c.agent) {
+      console.log('\nOpen this URL in your browser to log in:\n')
+      console.log(`  ${authUrl.toString()}\n`)
+      console.log('Waiting for authentication...\n')
+    }
 
     // Wait for auth page to redirect back with api_key
     const { apiKey, publishableKey, projectId, project } = await waitForCallback(port, state)
@@ -184,7 +186,9 @@ export const loginConfig = {
       writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_PROJECT_ID', projectId)
     }
 
-    console.log(`Saved API key for project "${project}" to ${CREDENTIALS_PATH}`)
+    if (!c.agent) {
+      console.log(`Saved API key for project "${project}" to ${CREDENTIALS_PATH}`)
+    }
 
     return c.ok(
       { apiKey, project, credentialsPath: CREDENTIALS_PATH },
@@ -192,7 +196,7 @@ export const loginConfig = {
         cta: {
           description: 'Next steps:',
           commands: [
-            { command: `wallet-keys create`, description: 'Create and save wallet keys necessary for backend wallet creation' },
+            { command: `backend-wallet setup`, description: 'Set up signing keys for backend wallets' },
           ],
         },
       },

@@ -8,7 +8,7 @@ import { varsSchema } from '../vars.js'
 const policyScopes = ['project', 'account', 'transaction'] as const
 
 export const policies = Cli.create('policies', {
-  description: 'Manage access-control policies.',
+  description: 'Manage rules and conditions for backend wallets and fee sponsorship.',
   vars: varsSchema,
 })
 
@@ -85,6 +85,14 @@ policies.command('create', {
         rules: '[{"action":"accept","operation":"sponsorEvmTransaction","criteria":[{"type":"evmNetwork","operator":"in","chainIds":[137]}]}]',
       },
       description: 'Create a policy to sponsor transactions on Polygon',
+    },
+    {
+      options: {
+        scope: 'account' as const,
+        description: 'Allow signing for a specific account',
+        rules: '[{"action":"accept","operation":"signEvmTransaction"}]',
+      },
+      description: 'Allow EVM transaction signing',
     },
   ],
   async run(c) {
