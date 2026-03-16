@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.7
+
+### Patch Changes
+
+- [#23](https://github.com/openfort-xyz/cli/pull/23) [`e71b1c6`](https://github.com/openfort-xyz/cli/commit/e71b1c6b101aeb27e352b60b922c6d3699bdaeae) Thanks [@jamalavedra](https://github.com/jamalavedra)! - open login url
+
 ## 0.1.6
 
 ### Patch Changes
