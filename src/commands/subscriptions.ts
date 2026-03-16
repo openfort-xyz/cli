@@ -200,7 +200,7 @@ subscriptions.command('create', {
     })),
   }),
   async run(c) {
-    const parsedTriggers = JSON.parse(c.options.triggers)
+    const parsedTriggers: Array<{ type: string; target: string }> = JSON.parse(c.options.triggers)
     const res = await c.var.openfort.subscriptions.create({
       topic: c.options.topic,
       triggers: parsedTriggers,

@@ -30,7 +30,7 @@ declare module 'incur' {
       'contracts list': { args: {}; options: { limit: number; skip: number } }
       'contracts update': { args: { id: string }; options: { name: string; address: string; chainId: number; abi: string } }
       'embedded-wallet setup': { args: {}; options: { project: string } }
-      'login': { args: {}; options: {} }
+      'login _root': { args: {}; options: {} }
       'message hash': { args: { message: string }; options: {} }
       'paymasters create': { args: {}; options: { address: string; name: string; url: string } }
       'paymasters delete': { args: { id: string }; options: {} }

@@ -3,7 +3,9 @@ import { Cli, z, Errors } from 'incur'
 import Openfort from '@openfort/openfort-node'
 import { varsSchema } from './vars.js'
 import { API_BASE_URL } from './constants.js'
-import { loginConfig } from './commands/login.js'
+import { CREDENTIALS_PATH } from './config.js'
+import { loadEnvFile } from './env.js'
+import { login } from './commands/login.js'
 import { accounts } from './commands/accounts.js'
 import { contracts } from './commands/contracts.js'
 import { paymasters } from './commands/paymasters.js'
@@ -17,11 +19,10 @@ import { users } from './commands/users.js'
 import { backendWallet } from './commands/backend-wallet.js'
 import { message } from './commands/message.js'
 
-const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'))
+const pkg: { version: string } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'))
 
 const cli = Cli.create('openfort', {
   version: pkg.version,
-  aliases: ['of'],
   description: 'Openfort CLI — manage wallets, policies, and transactions from the terminal.',
   vars: varsSchema,
   env: z.object({
@@ -47,7 +48,7 @@ const cli = Cli.create('openfort', {
 })
 
 // Register login BEFORE middleware so it bypasses the API key check
-cli.command('login', loginConfig as any)
+cli.command(login)
 
 cli.use(async (c, next) => {
   // Skip API key check for the login command
@@ -57,7 +58,19 @@ cli.use(async (c, next) => {
     return
   }
 
-  const apiKey = process.env.OPENFORT_API_KEY
+  let apiKey = process.env.OPENFORT_API_KEY
+  if (!apiKey) {
+    // Reload credentials file (may have been written by login during this session)
+    const creds = loadEnvFile(CREDENTIALS_PATH)
+    apiKey = creds.get('OPENFORT_API_KEY')
+    if (apiKey) {
+      process.env.OPENFORT_API_KEY = apiKey
+      const pk = creds.get('OPENFORT_PUBLISHABLE_KEY')
+      if (pk && !process.env.OPENFORT_PUBLISHABLE_KEY) process.env.OPENFORT_PUBLISHABLE_KEY = pk
+      const ws = creds.get('OPENFORT_WALLET_SECRET')
+      if (ws && !process.env.OPENFORT_WALLET_SECRET) process.env.OPENFORT_WALLET_SECRET = ws
+    }
+  }
   if (!apiKey) {
     throw new Errors.IncurError({
       code: 'MISSING_API_KEY',

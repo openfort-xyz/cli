@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { Errors } from 'incur'
 
 export function loadEnvFile(envPath: string): Map<string, string> {
   const entries = new Map<string, string>()
@@ -26,4 +27,16 @@ export function writeEnvKey(envPath: string, key: string, value: string) {
     lines.push(`${k}=${v}`)
   }
   writeFileSync(envPath, `${lines.join('\n')}\n`)
+}
+
+export function requireApiKey(): string {
+  const apiKey = process.env.OPENFORT_API_KEY
+  if (!apiKey) {
+    throw new Errors.IncurError({
+      code: 'MISSING_API_KEY',
+      message: 'OPENFORT_API_KEY is required.',
+      hint: 'Run: openfort login',
+    })
+  }
+  return apiKey
 }

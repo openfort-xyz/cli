@@ -98,14 +98,6 @@ openfort skills add
 | `embedded-wallet` | Configure embedded wallet (Shield) API keys                         |
 | `message`         | Message utilities (e.g. keccak256 hashing)                          |
 
-## Alias
-
-The CLI is also available as `of`:
-
-```bash
-of accounts list
-```
-
 ## Documentation
 
 For full documentation, visit [openfort.io/docs/overview/building-with-cli](https://www.openfort.io/docs/overview/building-with-cli).

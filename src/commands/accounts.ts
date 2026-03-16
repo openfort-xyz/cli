@@ -2,6 +2,7 @@ import { Cli, z, Errors, middleware } from 'incur'
 import type {
   GetAccountsV2ChainType,
   GetAccountsV2Custody,
+  Interaction,
 } from '@openfort/openfort-node'
 import { varsSchema } from '../vars.js'
 
@@ -353,7 +354,7 @@ evm.command('send-transaction', {
   }),
   async run(c) {
     const account = await c.var.openfort.accounts.evm.backend.get({ id: c.args.id })
-    const interactions = JSON.parse(c.options.interactions)
+    const interactions: Array<Interaction> = JSON.parse(c.options.interactions)
     const res = await c.var.openfort.accounts.evm.backend.sendTransaction({
       account,
       chainId: c.options.chainId,

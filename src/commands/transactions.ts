@@ -16,7 +16,7 @@ const transactionIntentItem = z.object({
     gasFee: z.string().optional(),
     status: z.number().optional(),
     to: z.string().optional(),
-    error: z.any().optional(),
+    error: z.record(z.string(), z.unknown()).optional(),
   }).optional(),
   interactions: z.array(z.object({
     to: z.string().optional(),
@@ -25,7 +25,7 @@ const transactionIntentItem = z.object({
   })).optional(),
   nextAction: z.object({
     type: z.string(),
-    payload: z.any().optional(),
+    payload: z.record(z.string(), z.unknown()).optional(),
   }).optional(),
 })
 
@@ -103,7 +103,7 @@ transactions.command('create', {
     },
   ],
   async run(c) {
-    const interactions = JSON.parse(c.options.interactions)
+    const interactions: Array<{ to?: string; data?: string; value?: string }> = JSON.parse(c.options.interactions)
     const res = await c.var.openfort.transactionIntents.create({
       account: c.options.account,
       chainId: c.options.chainId,
@@ -225,7 +225,7 @@ transactions.command('estimate', {
     gasPrice: z.string(),
   }),
   async run(c) {
-    const interactions = JSON.parse(c.options.interactions)
+    const interactions: Array<{ to?: string; data?: string; value?: string }> = JSON.parse(c.options.interactions)
     const res = await c.var.openfort.transactionIntents.estimateCost({
       account: c.options.account,
       chainId: c.options.chainId,

@@ -12,7 +12,7 @@ const sessionItem = z.object({
   isActive: z.boolean(),
   nextAction: z.object({
     type: z.string(),
-    payload: z.any().optional(),
+    payload: z.record(z.string(), z.unknown()).optional(),
   }).optional(),
 })
 
@@ -93,7 +93,7 @@ sessions.command('create', {
       account: c.options.account,
       limit: c.options.limit,
       policy: c.options.policy,
-      whitelist: c.options.whitelist ? JSON.parse(c.options.whitelist) : undefined,
+      whitelist: c.options.whitelist ? JSON.parse(c.options.whitelist) as string[] : undefined,
     })
     return c.ok(
       {

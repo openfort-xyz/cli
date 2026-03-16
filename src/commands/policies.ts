@@ -96,7 +96,7 @@ policies.command('create', {
     },
   ],
   async run(c) {
-    const rules = JSON.parse(c.options.rules)
+    const rules: Array<Record<string, unknown>> = JSON.parse(c.options.rules)
     const scope: CreatePolicyV2RequestScope = c.options.scope
     const res = await c.var.openfort.policies.create({
       scope,
@@ -142,7 +142,7 @@ policies.command('get', {
     accountId: z.string().nullable(),
     enabled: z.boolean(),
     priority: z.number(),
-    rules: z.array(z.any()),
+    rules: z.array(z.record(z.string(), z.unknown())),
   }),
   async run(c) {
     const p = await c.var.openfort.policies.get(c.args.id)
@@ -187,7 +187,7 @@ policies.command('update', {
       description: c.options.description,
       enabled: c.options.enabled,
       priority: c.options.priority,
-      rules: c.options.rules ? JSON.parse(c.options.rules) : undefined,
+      rules: c.options.rules ? JSON.parse(c.options.rules) as Array<Record<string, unknown>> : undefined,
     })
     return c.ok({
       id: res.id,
