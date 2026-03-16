@@ -1,9 +1,9 @@
-import { randomBytes, subtle } from 'node:crypto'
+import { randomBytes, subtle, type webcrypto } from 'node:crypto'
 import { Cli, z, Errors } from 'incur'
 import { varsSchema } from '../vars.js'
 import { API_BASE_URL } from '../constants.js'
 import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
-import { writeEnvKey } from '../env.js'
+import { requireApiKey, writeEnvKey } from '../env.js'
 
 // --- Crypto helpers ---
 
@@ -15,8 +15,8 @@ function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
   return Buffer.from(buffer).toString('base64url')
 }
 
-function stringToArrayBuffer(str: string): ArrayBuffer {
-  return new TextEncoder().encode(str).buffer as ArrayBuffer
+function stringToArrayBuffer(str: string): Uint8Array {
+  return new TextEncoder().encode(str)
 }
 
 function formatPEMBody(base64: string): string {
@@ -26,14 +26,15 @@ function formatPEMBody(base64: string): string {
 function sortObjectKeys(obj: unknown): unknown {
   if (obj === null || typeof obj !== 'object') return obj
   if (Array.isArray(obj)) return obj.map(sortObjectKeys)
+  const record = obj as Record<string, unknown>
   const sorted: Record<string, unknown> = {}
-  for (const key of Object.keys(obj as Record<string, unknown>).sort()) {
-    sorted[key] = sortObjectKeys((obj as Record<string, unknown>)[key])
+  for (const key of Object.keys(record).sort()) {
+    sorted[key] = sortObjectKeys(record[key])
   }
   return sorted
 }
 
-async function importPrivateKey(base64: string): Promise<CryptoKey> {
+async function importPrivateKey(base64: string): Promise<webcrypto.CryptoKey> {
   const binaryDer = Buffer.from(base64, 'base64')
   return subtle.importKey(
     'pkcs8',
@@ -62,7 +63,7 @@ async function generateKeyPair() {
 }
 
 async function signWalletAuthJwt(
-  privateKey: CryptoKey,
+  privateKey: webcrypto.CryptoKey,
   method: string,
   path: string,
   body: Record<string, unknown>
@@ -96,6 +97,14 @@ async function signWalletAuthJwt(
   return `${signingInput}.${arrayBufferToBase64Url(signature)}`
 }
 
+// --- Response types ---
+
+interface RevokeSecretResponse {
+  keyId: string
+  revoked: boolean
+  revokedAt: number
+}
+
 // --- CLI command ---
 
 export const backendWallet = Cli.create('backend-wallet', {
@@ -116,7 +125,7 @@ backendWallet.command('setup', {
   ],
   hint: 'Requires OPENFORT_API_KEY. Run "openfort login" first.',
   async run(c) {
-    const apiKey = process.env.OPENFORT_API_KEY!
+    const apiKey = requireApiKey()
 
     // Step 1: Generate ECDSA P-256 key pair
     const { publicKey, privateKey, privateKeyCrypto } = await generateKeyPair()
@@ -127,7 +136,7 @@ backendWallet.command('setup', {
     const keyId = `ws_${Date.now()}`
     const bodyWithoutToken = { publicKey: publicKeyPEM, keyId }
 
-    const jwt = await signWalletAuthJwt(privateKeyCrypto as unknown as CryptoKey, 'POST', path, bodyWithoutToken)
+    const jwt = await signWalletAuthJwt(privateKeyCrypto, 'POST', path, bodyWithoutToken)
 
     const registerRes = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',
@@ -204,7 +213,7 @@ backendWallet.command('revoke', {
   ],
   hint: 'Requires OPENFORT_WALLET_KEY_ID and OPENFORT_WALLET_SECRET. Run "openfort backend-wallet setup" first.',
   async run(c) {
-    const apiKey = process.env.OPENFORT_API_KEY!
+    const apiKey = requireApiKey()
     const keyId = process.env.OPENFORT_WALLET_KEY_ID
     const privateKeyBase64 = process.env.OPENFORT_WALLET_SECRET
 
@@ -242,7 +251,7 @@ backendWallet.command('revoke', {
       })
     }
 
-    const data = await res.json() as { keyId: string; revoked: boolean; revokedAt: number }
+    const data: RevokeSecretResponse = await res.json()
     return c.ok(data)
   },
 })
@@ -260,7 +269,7 @@ backendWallet.command('rotate', {
   ],
   hint: 'Requires OPENFORT_API_KEY. Run "openfort login" first.',
   async run(c) {
-    const apiKey = process.env.OPENFORT_API_KEY!
+    const apiKey = requireApiKey()
 
     // Step 1: Generate new ECDSA P-256 key pair
     const { publicKey, privateKey, privateKeyCrypto } = await generateKeyPair()
@@ -271,7 +280,7 @@ backendWallet.command('rotate', {
     const newKeyId = `ws_${Date.now()}`
     const bodyWithoutToken = { newPublicKey: newPublicKeyPEM, newKeyId }
 
-    const jwt = await signWalletAuthJwt(privateKeyCrypto as unknown as CryptoKey, 'POST', path, bodyWithoutToken)
+    const jwt = await signWalletAuthJwt(privateKeyCrypto, 'POST', path, bodyWithoutToken)
 
     const rotateRes = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',

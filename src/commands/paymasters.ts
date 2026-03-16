@@ -79,7 +79,7 @@ paymasters.command('update', {
     id: z.string().describe('Paymaster ID (pay_...)'),
   }),
   options: z.object({
-    address: z.string().optional().describe('Paymaster address'),
+    address: z.string().describe('Paymaster address'),
     name: z.string().optional().describe('New name'),
     url: z.string().optional().describe('New URL'),
   }),
@@ -89,7 +89,7 @@ paymasters.command('update', {
   output: paymasterItem,
   async run(c) {
     const res = await c.var.openfort.paymasters.update(c.args.id, {
-      address: c.options.address!,
+      address: c.options.address,
       name: c.options.name,
       url: c.options.url,
     })

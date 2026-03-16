@@ -2,9 +2,16 @@ import { Cli, z, Errors } from 'incur'
 import { varsSchema } from '../vars.js'
 import { API_BASE_URL, OPENFORT_SHIELD_URL } from '../constants.js'
 import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
-import { writeEnvKey } from '../env.js'
+import { requireApiKey, writeEnvKey } from '../env.js'
 
 const SHIELD_API_URL = OPENFORT_SHIELD_URL
+
+interface ShieldRegisterResponse {
+  error?: string
+  api_key: string
+  api_secret: string
+  encryption_part: string
+}
 
 export const embeddedWallet = Cli.create('embedded-wallet', {
   description: 'Configure embedded wallet (Shield) API keys.',
@@ -38,7 +45,7 @@ embeddedWallet.command('setup', {
       })
     }
 
-    const apiKey = process.env.OPENFORT_API_KEY!
+    const apiKey = requireApiKey()
     const environment = apiKey.startsWith('sk_live_') ? 'live' : 'test'
     const projectId = c.options.project || process.env.OPENFORT_PROJECT_ID
     if (!projectId) {
@@ -72,12 +79,7 @@ embeddedWallet.command('setup', {
       })
     }
 
-    const shieldData = (await registerRes.json()) as {
-      error?: string
-      api_key: string
-      api_secret: string
-      encryption_part: string
-    }
+    const shieldData: ShieldRegisterResponse = await registerRes.json()
 
     if (shieldData.error) {
       throw new Errors.IncurError({

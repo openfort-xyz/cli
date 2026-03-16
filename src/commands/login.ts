@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { createServer } from 'node:http'
 import open from 'open'
-import { z } from 'incur'
+import { Cli, z } from 'incur'
 import { AUTH_PAGE_URL, CLI_CALLBACK_PORT } from '../constants.js'
 import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
 import { writeEnvKey } from '../env.js'
@@ -109,7 +109,7 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
     }, 5 * 60 * 1000)
 
     const server = createServer((req, res) => {
-      const url = new URL(req.url!, `http://localhost:${port}`)
+      const url = new URL(req.url ?? '/', `http://localhost:${port}`)
 
       if (url.pathname === '/callback') {
         const apiKey = url.searchParams.get('api_key')
@@ -151,14 +151,14 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
 }
 
 
-export const loginConfig = {
+export const login = Cli.create('login', {
   description: 'Log in to Openfort via browser and save your API key.',
   output: z.object({
     apiKey: z.string().describe('The API key saved to credentials'),
     project: z.string().describe('The project name'),
     credentialsPath: z.string().describe('Path to the credentials file'),
   }),
-  async run(c: any) {
+  async run(c) {
     const state = generateState()
     const port = CLI_CALLBACK_PORT
     const redirectUri = `http://localhost:${port}/callback`
@@ -209,4 +209,4 @@ export const loginConfig = {
       },
     )
   },
-} as const
+})
