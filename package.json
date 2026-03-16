@@ -1,6 +1,6 @@
 {
   "name": "@openfort/cli",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Openfort CLI — manage wallets, policies, and transactions from the terminal.",
   "author": "Openfort (https://www.openfort.io)",
   "bugs": "https://github.com/openfort-xyz/cli/issues",
