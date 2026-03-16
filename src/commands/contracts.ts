@@ -68,7 +68,7 @@ contracts.command('create', {
       description: 'Register USDC on Polygon',
     },
     {
-      options: { name: 'My NFT', address: '0x1234...', chainId: 1, abi: '[{"type":"function","name":"mint",...}]' },
+      options: { name: 'My Token', address: '0x1234...', chainId: 1, abi: '[{"type":"function","name":"mint","inputs":[],"outputs":[],"stateMutability":"nonpayable"}]' },
       description: 'Register contract with ABI',
     },
   ],

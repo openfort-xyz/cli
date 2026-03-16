@@ -6,13 +6,13 @@ import { writeEnvKey } from '../env.js'
 
 const SHIELD_API_URL = OPENFORT_SHIELD_URL
 
-export const shield = Cli.create('shield', {
-  description: 'Manage Shield (embedded wallet) API keys.',
+export const embeddedWallet = Cli.create('embedded-wallet', {
+  description: 'Configure embedded wallet (Shield) API keys.',
   vars: varsSchema,
 })
 
-shield.command('create', {
-  description: 'Create Shield API keys for embedded wallets.',
+embeddedWallet.command('setup', {
+  description: 'Generate and register embedded wallet (Shield) API keys.',
   options: z.object({
     project: z.string().optional().describe('Project ID (pro_...). Defaults to OPENFORT_PROJECT_ID env var.'),
   }),
@@ -24,9 +24,10 @@ shield.command('create', {
   examples: [
     {
       options: { project: 'pro_abc123' },
-      description: 'Create Shield keys for a project',
+      description: 'Set up embedded wallet keys for a project',
     },
   ],
+  hint: 'Requires OPENFORT_PUBLISHABLE_KEY and OPENFORT_PROJECT_ID. Run "openfort login" first.',
   async run(c) {
     const publishableKey = process.env.OPENFORT_PUBLISHABLE_KEY
     if (!publishableKey) {
@@ -67,6 +68,7 @@ shield.command('create', {
       throw new Errors.IncurError({
         code: 'SHIELD_REGISTER_FAILED',
         message: `Shield registration failed: ${text}`,
+        retryable: true,
       })
     }
 
@@ -99,6 +101,7 @@ shield.command('create', {
         throw new Errors.IncurError({
           code: 'PERSIST_KEY_FAILED',
           message: `Failed to persist ${type} key: ${text}`,
+          retryable: true,
         })
       }
     }
@@ -130,6 +133,7 @@ shield.command('create', {
       throw new Errors.IncurError({
         code: 'SHIELD_LINK_FAILED',
         message: `Failed to link Openfort provider to Shield: ${text}`,
+        retryable: true,
       })
     }
 
@@ -140,7 +144,7 @@ shield.command('create', {
     writeEnvKey(CREDENTIALS_PATH, 'SHIELD_ENCRYPTION_SHARE', shieldData.encryption_part)
 
     return c.ok(
-      { message: `Shield keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH },
+      { message: `Embedded wallet keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH },
       {
         cta: {
           description: 'Next steps:',

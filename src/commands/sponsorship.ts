@@ -21,7 +21,7 @@ const sponsorshipItem = z.object({
 })
 
 export const sponsorship = Cli.create('sponsorship', {
-  description: 'Manage fee sponsorships for gas costs.',
+  description: 'Manage fee sponsorship strategies linked to policies.',
   vars: varsSchema,
 })
 
