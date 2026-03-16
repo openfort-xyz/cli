@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.6
+
+### Patch Changes
+
+- [#21](https://github.com/openfort-xyz/cli/pull/21) [`56f204b`](https://github.com/openfort-xyz/cli/commit/56f204b12ed0494860d283966dce517c676c03cc) Thanks [@jamalavedra](https://github.com/jamalavedra)! - fix pol naming
+
 ## 0.1.5
 
 ### Patch Changes
