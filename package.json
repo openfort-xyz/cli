@@ -5,7 +5,10 @@
   "author": "Openfort (https://www.openfort.io)",
   "bugs": "https://github.com/openfort-xyz/cli/issues",
   "homepage": "https://github.com/openfort-xyz/cli#readme",
-  "repository": "github.com/openfort-xyz/cli.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openfort-xyz/cli"
+  },
   "type": "module",
   "bin": {
     "openfort": "./dist/bin.js",
