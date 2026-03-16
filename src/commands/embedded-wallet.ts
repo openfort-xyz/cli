@@ -1,10 +1,7 @@
 import { Cli, z, Errors } from 'incur'
-import { varsSchema } from '../vars.js'
 import { API_BASE_URL, OPENFORT_SHIELD_URL } from '../constants.js'
 import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
 import { requireApiKey, writeEnvKey } from '../env.js'
-
-const SHIELD_API_URL = OPENFORT_SHIELD_URL
 
 interface ShieldRegisterResponse {
   error?: string
@@ -15,7 +12,6 @@ interface ShieldRegisterResponse {
 
 export const embeddedWallet = Cli.create('embedded-wallet', {
   description: 'Configure embedded wallet (Shield) API keys.',
-  vars: varsSchema,
 })
 
 embeddedWallet.command('setup', {
@@ -57,7 +53,7 @@ embeddedWallet.command('setup', {
     }
 
     // Step 1: Register with Shield service
-    const registerRes = await fetch(`${SHIELD_API_URL}/register`, {
+    const registerRes = await fetch(`${OPENFORT_SHIELD_URL}/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -114,7 +110,7 @@ embeddedWallet.command('setup', {
     ])
 
     // Step 3: Link Openfort provider to Shield project
-    const linkRes = await fetch(`${SHIELD_API_URL}/project/providers`, {
+    const linkRes = await fetch(`${OPENFORT_SHIELD_URL}/project/providers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

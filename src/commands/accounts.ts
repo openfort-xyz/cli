@@ -1,12 +1,12 @@
-import { Cli, z, Errors, middleware } from 'incur'
+import { Cli, z, middleware } from 'incur'
 import type {
   GetAccountsV2ChainType,
   GetAccountsV2Custody,
   Interaction,
 } from '@openfort/openfort-node'
-import { varsSchema } from '../vars.js'
+import { getOpenfort } from '../client.js'
 
-const requireWallet = middleware<typeof varsSchema>((c, next) => {
+const requireWallet = middleware((c, next) => {
   const missing: string[] = []
   if (!process.env.OPENFORT_WALLET_SECRET) missing.push('OPENFORT_WALLET_SECRET')
   if (!process.env.OPENFORT_PUBLISHABLE_KEY) missing.push('OPENFORT_PUBLISHABLE_KEY')
@@ -27,7 +27,6 @@ const requireWallet = middleware<typeof varsSchema>((c, next) => {
 
 const evm = Cli.create('evm', {
   description: 'EVM wallet management.',
-  vars: varsSchema,
 })
 
 evm.command('create', {
@@ -43,7 +42,7 @@ evm.command('create', {
     custody: z.string().describe('Custody type'),
   }),
   async run(c) {
-    const account = await c.var.openfort.accounts.evm.backend.create()
+    const account = await getOpenfort().accounts.evm.backend.create()
     return c.ok(
       { id: account.id, address: account.address, custody: account.custody },
       {
@@ -79,7 +78,7 @@ evm.command('list', {
     total: z.number().optional(),
   }),
   async run(c) {
-    const res = await c.var.openfort.accounts.evm.backend.list({
+    const res = await getOpenfort().accounts.evm.backend.list({
       limit: c.options.limit,
       skip: c.options.skip,
     })
@@ -114,7 +113,7 @@ evm.command('list-delegated', {
     total: z.number().optional(),
   }),
   async run(c) {
-    const res = await c.var.openfort.accounts.evm.list({
+    const res = await getOpenfort().accounts.evm.list({
       accountType: 'Delegated Account',
       limit: c.options.limit,
       skip: c.options.skip,
@@ -150,7 +149,7 @@ evm.command('list-smart', {
     total: z.number().optional(),
   }),
   async run(c) {
-    const res = await c.var.openfort.accounts.evm.list({
+    const res = await getOpenfort().accounts.evm.list({
       accountType: 'Smart Account',
       limit: c.options.limit,
       skip: c.options.skip,
@@ -180,7 +179,7 @@ evm.command('get', {
     custody: z.string(),
   }),
   async run(c) {
-    const a = await c.var.openfort.accounts.evm.backend.get({ id: c.args.id })
+    const a = await getOpenfort().accounts.evm.backend.get({ id: c.args.id })
     return c.ok({
       id: a.id,
       address: a.address,
@@ -202,7 +201,7 @@ evm.command('delete', {
     deleted: z.boolean(),
   }),
   async run(c) {
-    const res = await c.var.openfort.accounts.evm.backend.delete(c.args.id)
+    const res = await getOpenfort().accounts.evm.backend.delete(c.args.id)
     return c.ok({ id: res.id, deleted: res.deleted })
   },
 })
@@ -228,8 +227,8 @@ evm.command('update', {
   }),
   async run(c) {
     // First get the account to obtain walletId
-    const account = await c.var.openfort.accounts.evm.backend.get({ id: c.args.id })
-    const res = await c.var.openfort.accounts.evm.backend.update({
+    const account = await getOpenfort().accounts.evm.backend.get({ id: c.args.id })
+    const res = await getOpenfort().accounts.evm.backend.update({
       walletId: account.walletId,
       chainId: c.options.chainId,
       accountId: account.id,
@@ -271,7 +270,7 @@ evm.command('sign', {
     signature: z.string(),
   }),
   async run(c) {
-    const signature = await c.var.openfort.accounts.evm.backend.sign({
+    const signature = await getOpenfort().accounts.evm.backend.sign({
       id: c.args.id,
       data: c.options.data,
     })
@@ -295,7 +294,7 @@ evm.command('import', {
     custody: z.string(),
   }),
   async run(c) {
-    const account = await c.var.openfort.accounts.evm.backend.import({
+    const account = await getOpenfort().accounts.evm.backend.import({
       privateKey: c.options.privateKey,
     })
     return c.ok({
@@ -319,7 +318,7 @@ evm.command('export', {
     privateKey: z.string(),
   }),
   async run(c) {
-    const privateKey = await c.var.openfort.accounts.evm.backend.export({
+    const privateKey = await getOpenfort().accounts.evm.backend.export({
       id: c.args.id,
     })
     return c.ok({ privateKey })
@@ -353,9 +352,9 @@ evm.command('send-transaction', {
     transactionHash: z.string().optional(),
   }),
   async run(c) {
-    const account = await c.var.openfort.accounts.evm.backend.get({ id: c.args.id })
+    const account = await getOpenfort().accounts.evm.backend.get({ id: c.args.id })
     const interactions: Array<Interaction> = JSON.parse(c.options.interactions)
-    const res = await c.var.openfort.accounts.evm.backend.sendTransaction({
+    const res = await getOpenfort().accounts.evm.backend.sendTransaction({
       account,
       chainId: c.options.chainId,
       interactions,
@@ -373,7 +372,6 @@ evm.command('send-transaction', {
 
 const solana = Cli.create('solana', {
   description: 'Solana wallet management.',
-  vars: varsSchema,
 })
 
 solana.command('create', {
@@ -389,7 +387,7 @@ solana.command('create', {
     custody: z.string().describe('Custody type'),
   }),
   async run(c) {
-    const account = await c.var.openfort.accounts.solana.backend.create()
+    const account = await getOpenfort().accounts.solana.backend.create()
     return c.ok(
       { id: account.id, address: account.address, custody: account.custody },
       {
@@ -423,7 +421,7 @@ solana.command('list', {
     total: z.number().optional(),
   }),
   async run(c) {
-    const res = await c.var.openfort.accounts.solana.backend.list({
+    const res = await getOpenfort().accounts.solana.backend.list({
       limit: c.options.limit,
       skip: c.options.skip,
     })
@@ -452,7 +450,7 @@ solana.command('get', {
     custody: z.string(),
   }),
   async run(c) {
-    const a = await c.var.openfort.accounts.solana.backend.get({ id: c.args.id })
+    const a = await getOpenfort().accounts.solana.backend.get({ id: c.args.id })
     return c.ok({
       id: a.id,
       address: a.address,
@@ -484,7 +482,7 @@ solana.command('sign', {
     },
   ],
   async run(c) {
-    const signature = await c.var.openfort.accounts.solana.backend.sign(c.args.id, c.options.data)
+    const signature = await getOpenfort().accounts.solana.backend.sign(c.args.id, c.options.data)
     return c.ok({ account: c.args.id, signature })
   },
 })
@@ -502,7 +500,7 @@ solana.command('delete', {
     deleted: z.boolean(),
   }),
   async run(c) {
-    const res = await c.var.openfort.accounts.solana.backend.delete(c.args.id)
+    const res = await getOpenfort().accounts.solana.backend.delete(c.args.id)
     return c.ok({ id: res.id, deleted: res.deleted })
   },
 })
@@ -523,7 +521,7 @@ solana.command('import', {
     custody: z.string(),
   }),
   async run(c) {
-    const account = await c.var.openfort.accounts.solana.backend.import({
+    const account = await getOpenfort().accounts.solana.backend.import({
       privateKey: c.options.privateKey,
     })
     return c.ok({
@@ -547,7 +545,7 @@ solana.command('export', {
     privateKey: z.string(),
   }),
   async run(c) {
-    const privateKey = await c.var.openfort.accounts.solana.backend.export({
+    const privateKey = await getOpenfort().accounts.solana.backend.export({
       id: c.args.id,
     })
     return c.ok({ privateKey })
@@ -582,8 +580,8 @@ solana.command('transfer', {
     signature: z.string(),
   }),
   async run(c) {
-    const account = await c.var.openfort.accounts.solana.backend.get({ id: c.args.id })
-    const res = await c.var.openfort.accounts.solana.backend.transfer({
+    const account = await getOpenfort().accounts.solana.backend.get({ id: c.args.id })
+    const res = await getOpenfort().accounts.solana.backend.transfer({
       account,
       to: c.options.to,
       amount: BigInt(c.options.amount),
@@ -598,7 +596,6 @@ solana.command('transfer', {
 
 const accounts = Cli.create('accounts', {
   description: 'Manage wallets and accounts.',
-  vars: varsSchema,
 })
 
 accounts.command('list', {
@@ -631,7 +628,7 @@ accounts.command('list', {
     total: z.number(),
   }),
   async run(c) {
-    const res = await c.var.openfort.accounts.list({
+    const res = await getOpenfort().accounts.list({
       limit: c.options.limit,
       skip: c.options.skip,
       chainType: c.options.chainType satisfies GetAccountsV2ChainType | undefined,

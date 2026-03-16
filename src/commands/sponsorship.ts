@@ -1,6 +1,6 @@
 import { Cli, z } from 'incur'
 import type { FeeSponsorshipStrategy } from '@openfort/openfort-node'
-import { varsSchema } from '../vars.js'
+import { getOpenfort } from '../client.js'
 
 const sponsorSchemas = ['pay_for_user', 'charge_custom_tokens', 'fixed_rate'] as const
 
@@ -22,7 +22,6 @@ const sponsorshipItem = z.object({
 
 export const sponsorship = Cli.create('sponsorship', {
   description: 'Manage fee sponsorship strategies linked to policies.',
-  vars: varsSchema,
 })
 
 sponsorship.command('list', {
@@ -42,7 +41,7 @@ sponsorship.command('list', {
     total: z.number(),
   }),
   async run(c) {
-    const res = await c.var.openfort.feeSponsorship.list({
+    const res = await getOpenfort().feeSponsorship.list({
       limit: c.options.limit,
       skip: c.options.skip,
       enabled: c.options.enabled,
@@ -84,7 +83,7 @@ sponsorship.command('create', {
   ],
   async run(c) {
     const strategy: FeeSponsorshipStrategy = { sponsorSchema: c.options.strategy }
-    const res = await c.var.openfort.feeSponsorship.create({
+    const res = await getOpenfort().feeSponsorship.create({
       policyId: c.options.policyId,
       name: c.options.name,
       strategy,
@@ -124,7 +123,7 @@ sponsorship.command('get', {
   ],
   output: sponsorshipItem,
   async run(c) {
-    const s = await c.var.openfort.feeSponsorship.get(c.args.id)
+    const s = await getOpenfort().feeSponsorship.get(c.args.id)
     return c.ok({
       id: s.id,
       createdAt: s.createdAt,
@@ -156,7 +155,7 @@ sponsorship.command('update', {
     const strategy: FeeSponsorshipStrategy | undefined = c.options.strategy
       ? { sponsorSchema: c.options.strategy }
       : undefined
-    const res = await c.var.openfort.feeSponsorship.update(c.args.id, {
+    const res = await getOpenfort().feeSponsorship.update(c.args.id, {
       name: c.options.name,
       strategy,
       policyId: c.options.policyId,
@@ -184,7 +183,7 @@ sponsorship.command('enable', {
   ],
   output: sponsorshipItem,
   async run(c) {
-    const res = await c.var.openfort.feeSponsorship.enable(c.args.id)
+    const res = await getOpenfort().feeSponsorship.enable(c.args.id)
     return c.ok({
       id: res.id,
       createdAt: res.createdAt,
@@ -208,7 +207,7 @@ sponsorship.command('disable', {
   ],
   output: sponsorshipItem,
   async run(c) {
-    const res = await c.var.openfort.feeSponsorship.disable(c.args.id)
+    const res = await getOpenfort().feeSponsorship.disable(c.args.id)
     return c.ok({
       id: res.id,
       createdAt: res.createdAt,
@@ -235,7 +234,7 @@ sponsorship.command('delete', {
     deleted: z.boolean(),
   }),
   async run(c) {
-    const res = await c.var.openfort.feeSponsorship.delete(c.args.id)
+    const res = await getOpenfort().feeSponsorship.delete(c.args.id)
     return c.ok({ id: res.id, deleted: res.deleted })
   },
 })

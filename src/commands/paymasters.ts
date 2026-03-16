@@ -1,5 +1,5 @@
 import { Cli, z } from 'incur'
-import { varsSchema } from '../vars.js'
+import { getOpenfort } from '../client.js'
 
 const paymasterItem = z.object({
   id: z.string(),
@@ -11,7 +11,6 @@ const paymasterItem = z.object({
 
 export const paymasters = Cli.create('paymasters', {
   description: 'Manage ERC-4337 paymasters.',
-  vars: varsSchema,
 })
 
 paymasters.command('create', {
@@ -26,7 +25,7 @@ paymasters.command('create', {
   ],
   output: paymasterItem,
   async run(c) {
-    const res = await c.var.openfort.paymasters.create({
+    const res = await getOpenfort().paymasters.create({
       address: c.options.address,
       name: c.options.name,
       url: c.options.url,
@@ -62,7 +61,7 @@ paymasters.command('get', {
   ],
   output: paymasterItem,
   async run(c) {
-    const p = await c.var.openfort.paymasters.get(c.args.id)
+    const p = await getOpenfort().paymasters.get(c.args.id)
     return c.ok({
       id: p.id,
       createdAt: p.createdAt,
@@ -88,7 +87,7 @@ paymasters.command('update', {
   ],
   output: paymasterItem,
   async run(c) {
-    const res = await c.var.openfort.paymasters.update(c.args.id, {
+    const res = await getOpenfort().paymasters.update(c.args.id, {
       address: c.options.address,
       name: c.options.name,
       url: c.options.url,
@@ -116,7 +115,7 @@ paymasters.command('delete', {
     deleted: z.boolean(),
   }),
   async run(c) {
-    const res = await c.var.openfort.paymasters.delete(c.args.id)
+    const res = await getOpenfort().paymasters.delete(c.args.id)
     return c.ok({ id: res.id, deleted: res.deleted })
   },
 })

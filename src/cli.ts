@@ -1,10 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { Cli, z, Errors } from 'incur'
-import Openfort from '@openfort/openfort-node'
-import { varsSchema } from './vars.js'
-import { API_BASE_URL } from './constants.js'
-import { CREDENTIALS_PATH } from './config.js'
-import { loadEnvFile } from './env.js'
+import { Cli, z } from 'incur'
 import { login } from './commands/login.js'
 import { accounts } from './commands/accounts.js'
 import { contracts } from './commands/contracts.js'
@@ -24,7 +19,6 @@ const pkg: { version: string } = JSON.parse(readFileSync(new URL('../package.jso
 const cli = Cli.create('openfort', {
   version: pkg.version,
   description: 'Openfort CLI — manage wallets, policies, and transactions from the terminal.',
-  vars: varsSchema,
   env: z.object({
     OPENFORT_API_KEY: z.string().optional().describe('Openfort secret API key (sk_test_... or sk_live_...)'),
     OPENFORT_WALLET_SECRET: z.string().optional().describe('Wallet encryption secret'),
@@ -47,44 +41,7 @@ const cli = Cli.create('openfort', {
   },
 })
 
-// Register login BEFORE middleware so it bypasses the API key check
 cli.command(login)
-
-cli.use(async (c, next) => {
-  // Skip API key check for the login command
-  const isLoginCommand = process.argv.slice(2).some((arg) => arg === 'login')
-  if (isLoginCommand) {
-    await next()
-    return
-  }
-
-  let apiKey = process.env.OPENFORT_API_KEY
-  if (!apiKey) {
-    // Reload credentials file (may have been written by login during this session)
-    const creds = loadEnvFile(CREDENTIALS_PATH)
-    apiKey = creds.get('OPENFORT_API_KEY')
-    if (apiKey) {
-      process.env.OPENFORT_API_KEY = apiKey
-      const pk = creds.get('OPENFORT_PUBLISHABLE_KEY')
-      if (pk && !process.env.OPENFORT_PUBLISHABLE_KEY) process.env.OPENFORT_PUBLISHABLE_KEY = pk
-      const ws = creds.get('OPENFORT_WALLET_SECRET')
-      if (ws && !process.env.OPENFORT_WALLET_SECRET) process.env.OPENFORT_WALLET_SECRET = ws
-    }
-  }
-  if (!apiKey) {
-    throw new Errors.IncurError({
-      code: 'MISSING_API_KEY',
-      message: 'OPENFORT_API_KEY environment variable is required.',
-      hint: 'Run: openfort login',
-    })
-  }
-  c.set('openfort', new Openfort(apiKey, {
-    walletSecret: process.env.OPENFORT_WALLET_SECRET,
-    publishableKey: process.env.OPENFORT_PUBLISHABLE_KEY,
-    basePath: API_BASE_URL,
-  }))
-  await next()
-})
 
 cli
   .command(accounts)
