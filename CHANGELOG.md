@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.10
+
+### Patch Changes
+
+- [#29](https://github.com/openfort-xyz/cli/pull/29) [`0838160`](https://github.com/openfort-xyz/cli/commit/08381608ce2b8338d62167e9c0b2f560524477c4) Thanks [@n00m4d](https://github.com/n00m4d)! - Add skills link
+
 ## 0.1.9
 
 ### Patch Changes
