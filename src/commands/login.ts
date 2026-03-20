@@ -14,7 +14,7 @@ function generateState(): string {
   return base64url(randomBytes(16))
 }
 
-function callbackPage(title: string, description: string, variant: 'success' | 'error' = 'success'): string {
+function callbackPage(title: string, description: string, variant: 'success' | 'error' = 'success', extraHtml = ''): string {
   const iconColor = variant === 'success' ? 'hsl(142 71% 45%)' : 'hsl(0 84% 60%)'
   const icon =
     variant === 'success'
@@ -64,7 +64,7 @@ function callbackPage(title: string, description: string, variant: 'success' | '
       border: 1px solid var(--border);
       border-radius: var(--radius);
       width: 100%;
-      max-width: 28rem;
+      max-width: 33rem;
       box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     }
     .card-header {
@@ -87,6 +87,57 @@ function callbackPage(title: string, description: string, variant: 'success' | '
       color: var(--muted-foreground);
       line-height: 1.5;
     }
+    .card-extra {
+      padding: 0 1.5rem 1.5rem;
+      border-top: 1px solid var(--border);
+      margin-top: 0;
+    }
+    .card-extra-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .code-block {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: var(--border);
+      border-radius: var(--radius);
+      padding: 0.5rem 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+    .code-block code {
+      flex: 1;
+      word-break: break-all;
+    }
+    .code-block button {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      padding: 0.25rem;
+      display: flex;
+      align-items: center;
+    }
+    .code-block button:hover {
+      color: var(--foreground);
+    }
+    .card-extra-link {
+      display: inline-block;
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      color: var(--muted-foreground);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .card-extra-link:hover {
+      color: var(--foreground);
+    }
   </style>
 </head>
 <body>
@@ -95,7 +146,7 @@ function callbackPage(title: string, description: string, variant: 'success' | '
       <div class="card-icon">${icon}</div>
       <h1 class="card-title">${title}</h1>
       <p class="card-description">${description}</p>
-    </div>
+    </div>${extraHtml}
   </div>
 </body>
 </html>`
@@ -136,7 +187,17 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
         }
 
         res.writeHead(200, { 'Content-Type': 'text/html' })
-        res.end(callbackPage('Login successful!', 'You can close this window and return to your terminal.'))
+        const skillCommand = 'npx skills add openfort-xyz/agent-skills --skill openfort'
+        const agentSkillHtml = `
+    <div class="card-extra">
+      <p class="card-extra-title">Build with AI? Add the Openfort skill:</p>
+      <div class="code-block">
+        <code>${skillCommand}</code>
+        <button onclick="navigator.clipboard.writeText('${skillCommand}');this.innerHTML='<svg width=&quot;14&quot; height=&quot;14&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;20 6 9 17 4 12&quot;/></svg>';setTimeout(()=>this.innerHTML='<svg width=&quot;14&quot; height=&quot;14&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;9&quot; y=&quot;9&quot; width=&quot;13&quot; height=&quot;13&quot; rx=&quot;2&quot; ry=&quot;2&quot;/><path d=&quot;M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1&quot;/></svg>',2000)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      </div>
+      <a class="card-extra-link" href="https://www.openfort.io/docs/overview/building-with-cli" target="_blank" rel="noopener noreferrer">Learn more about building with the CLI</a>
+    </div>`
+        res.end(callbackPage('Login successful!', 'You can close this window and return to your terminal.', 'success', agentSkillHtml))
         clearTimeout(timeout)
         server.close()
         resolve({ apiKey, publishableKey: publishableKey || undefined, projectId: projectId || undefined, project: project || 'unknown' })
