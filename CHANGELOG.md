@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.11
+
+### Patch Changes
+
+- [#31](https://github.com/openfort-xyz/cli/pull/31) [`62c60cf`](https://github.com/openfort-xyz/cli/commit/62c60cfa1cb18e9197627d06950fe2aca23ba459) Thanks [@n00m4d](https://github.com/n00m4d)! - Fix terminal hanging after login
+
 ## 0.1.10
 
 ### Patch Changes
