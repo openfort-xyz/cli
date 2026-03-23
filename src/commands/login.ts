@@ -156,6 +156,7 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       server.close()
+      server.closeAllConnections()
       reject(new Error('Login timed out after 5 minutes. Please try again.'))
     }, 5 * 60 * 1000)
 
@@ -176,6 +177,7 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
           res.end(callbackPage('Login failed', 'Something went wrong. You can close this window.', 'error'))
           clearTimeout(timeout)
           server.close()
+          server.closeAllConnections()
           reject(new Error(errorDescription || error))
           return
         }
@@ -200,6 +202,7 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
         res.end(callbackPage('Login successful!', 'You can close this window and return to your terminal.', 'success', agentSkillHtml))
         clearTimeout(timeout)
         server.close()
+        server.closeAllConnections()
         resolve({ apiKey, publishableKey: publishableKey || undefined, projectId: projectId || undefined, project: project || 'unknown' })
       } else {
         res.writeHead(404)
