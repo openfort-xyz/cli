@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.12
+
+### Patch Changes
+
+- [#33](https://github.com/openfort-xyz/cli/pull/33) [`07f7df1`](https://github.com/openfort-xyz/cli/commit/07f7df10ec78865056803c6c2404c52d83aaac0b) Thanks [@n00m4d](https://github.com/n00m4d)! - Get secret api key from fragment
+
 ## 0.1.11
 
 ### Patch Changes
