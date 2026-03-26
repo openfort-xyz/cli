@@ -152,6 +152,50 @@ function callbackPage(title: string, description: string, variant: 'success' | '
 </html>`
 }
 
+function fragmentBridgePage(port: number): string {
+  // Intermediary page that reads credentials from the URL fragment (which is
+  // never sent over HTTP) and forwards them to the local server via POST.
+  // This prevents secret keys from appearing in browser history, Referer
+  // headers, proxy logs, or being accessible to browser extensions.
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Openfort CLI - Authenticating...</title>
+  <style>
+    body { font-family: system-ui, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #fafafa; }
+    @media (prefers-color-scheme: dark) { body { background: #111; color: #eee; } }
+    p { font-size: 0.875rem; color: #888; }
+  </style>
+</head>
+<body>
+  <p>Completing authentication...</p>
+  <script>
+    (function() {
+      var hash = window.location.hash.substring(1);
+      if (!hash) {
+        document.querySelector('p').textContent = 'Authentication failed: no credentials received.';
+        return;
+      }
+      // Clear the fragment from the URL immediately to minimize exposure
+      history.replaceState(null, '', window.location.pathname);
+      fetch('http://localhost:${port}/callback/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: hash
+      }).then(function(r) { return r.text(); }).then(function(html) {
+        document.open();
+        document.write(html);
+        document.close();
+      }).catch(function() {
+        document.querySelector('p').textContent = 'Failed to complete authentication. Please try again.';
+      });
+    })();
+  </script>
+</body>
+</html>`
+}
+
 function waitForCallback(port: number, state: string): Promise<{ apiKey: string; publishableKey?: string; projectId?: string; project: string }> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
@@ -163,12 +207,8 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
     const server = createServer((req, res) => {
       const url = new URL(req.url ?? '/', `http://localhost:${port}`)
 
-      if (url.pathname === '/callback') {
-        const apiKey = url.searchParams.get('api_key')
-        const publishableKey = url.searchParams.get('publishable_key')
-        const projectId = url.searchParams.get('project_id')
-        const project = url.searchParams.get('project')
-        const returnedState = url.searchParams.get('state')
+      if (url.pathname === '/callback' && req.method === 'GET') {
+        // Check for error query params (these are non-sensitive and can stay as query params)
         const error = url.searchParams.get('error')
         const errorDescription = url.searchParams.get('error_description')
 
@@ -182,15 +222,30 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
           return
         }
 
-        if (!apiKey || returnedState !== state) {
-          res.writeHead(400, { 'Content-Type': 'text/html' })
-          res.end(callbackPage('Invalid callback', 'Missing API key or state mismatch. Please try logging in again.', 'error'))
-          return
-        }
-
+        // Serve the bridge page that reads the fragment and POSTs credentials
         res.writeHead(200, { 'Content-Type': 'text/html' })
-        const skillCommand = 'npx skills add openfort-xyz/agent-skills --skill openfort'
-        const agentSkillHtml = `
+        res.end(fragmentBridgePage(port))
+      } else if (url.pathname === '/callback/complete' && req.method === 'POST') {
+        // Receive credentials via POST body (sent by the bridge page)
+        let body = ''
+        req.on('data', (chunk: Buffer) => { body += chunk.toString() })
+        req.on('end', () => {
+          const params = new URLSearchParams(body)
+          const apiKey = params.get('api_key')
+          const publishableKey = params.get('publishable_key')
+          const projectId = params.get('project_id')
+          const project = params.get('project')
+          const returnedState = params.get('state')
+
+          if (!apiKey || returnedState !== state) {
+            res.writeHead(400, { 'Content-Type': 'text/html' })
+            res.end(callbackPage('Invalid callback', 'Missing API key or state mismatch. Please try logging in again.', 'error'))
+            return
+          }
+
+          res.writeHead(200, { 'Content-Type': 'text/html' })
+          const skillCommand = 'npx skills add openfort-xyz/agent-skills --skill openfort'
+          const agentSkillHtml = `
     <div class="card-extra">
       <p class="card-extra-title">Build with AI? Add the Openfort skill:</p>
       <div class="code-block">
@@ -199,11 +254,12 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
       </div>
       <a class="card-extra-link" href="https://www.openfort.io/docs/overview/building-with-cli" target="_blank" rel="noopener noreferrer">Learn more about building with the CLI</a>
     </div>`
-        res.end(callbackPage('Login successful!', 'You can close this window and return to your terminal.', 'success', agentSkillHtml))
-        clearTimeout(timeout)
-        server.close()
-        server.closeAllConnections()
-        resolve({ apiKey, publishableKey: publishableKey || undefined, projectId: projectId || undefined, project: project || 'unknown' })
+          res.end(callbackPage('Login successful!', 'You can close this window and return to your terminal.', 'success', agentSkillHtml))
+          clearTimeout(timeout)
+          server.close()
+          server.closeAllConnections()
+          resolve({ apiKey, publishableKey: publishableKey || undefined, projectId: projectId || undefined, project: project || 'unknown' })
+        })
       } else {
         res.writeHead(404)
         res.end()
