@@ -120,7 +120,7 @@ embeddedWallet.command('setup', {
       body: JSON.stringify({
         providers: {
           openfort: {
-            publishable_key: `pk_${environment}_${publishableKey}`,
+            publishable_key: `${publishableKey}`,
           },
         },
       }),
