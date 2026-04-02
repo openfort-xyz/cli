@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.13
+
+### Patch Changes
+
+- [#35](https://github.com/openfort-xyz/cli/pull/35) [`f04d270`](https://github.com/openfort-xyz/cli/commit/f04d2704effcc502c7c82e8d346b0b721b51ab77) Thanks [@n00m4d](https://github.com/n00m4d)! - Fix saving api pub key to shield
+
 ## 0.1.12
 
 ### Patch Changes
