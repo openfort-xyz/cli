@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.14
+
+### Patch Changes
+
+- [#38](https://github.com/openfort-xyz/cli/pull/38) [`22c5a5e`](https://github.com/openfort-xyz/cli/commit/22c5a5ef900b4ea8520680d8979f50c996014ca8) Thanks [@jamalavedra](https://github.com/jamalavedra)! - update deps
+
 ## 0.1.13
 
 ### Patch Changes
