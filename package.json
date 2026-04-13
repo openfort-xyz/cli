@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@openfort/openfort-node": "^0.10.2",
-    "incur": "^0.3.4",
+    "incur": "^0.3.25",
     "open": "^11.0.0",
     "viem": "^2.47.2"
   },
