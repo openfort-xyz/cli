@@ -1,10 +1,41 @@
 import { randomBytes } from 'node:crypto'
 import { createServer } from 'node:http'
 import open from 'open'
-import { Cli, z } from 'incur'
-import { AUTH_PAGE_URL, CLI_CALLBACK_PORT } from '../constants.js'
+import { Cli, z, Errors } from 'incur'
+import { API_BASE_URL, AUTH_PAGE_URL, CLI_CALLBACK_PORT } from '../constants.js'
 import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
 import { writeEnvKey } from '../env.js'
+
+interface ApiKeyResponse {
+  id: number
+  createdAt: number
+  token: string
+  name: string
+  livemode: boolean
+}
+
+async function createPublishableKey(apiKey: string): Promise<string> {
+  const res = await fetch(`${API_BASE_URL}/v1/project/apikey`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({ type: 'pk' }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Errors.IncurError({
+      code: 'CREATE_PUBLISHABLE_KEY_FAILED',
+      message: `Failed to create publishable key: ${text}`,
+      retryable: true,
+    })
+  }
+
+  const data: ApiKeyResponse = await res.json()
+  return data.token
+}
 
 function base64url(buffer: Buffer): string {
   return buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
@@ -303,12 +334,13 @@ export const login = Cli.create('login', {
     // Wait for auth page to redirect back with api_key
     const { apiKey, publishableKey, projectId, project } = await waitForCallback(port, state)
 
+    // Create a publishable key if the OAuth callback didn't return one
+    const finalPublishableKey = publishableKey ?? (await createPublishableKey(apiKey))
+
     // Write to global credentials file
     ensureConfigDir()
     writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_API_KEY', apiKey)
-    if (publishableKey) {
-      writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_PUBLISHABLE_KEY', publishableKey)
-    }
+    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_PUBLISHABLE_KEY', finalPublishableKey)
     if (projectId) {
       writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_PROJECT_ID', projectId)
     }
