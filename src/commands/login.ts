@@ -14,12 +14,13 @@ interface ApiKeyResponse {
   livemode: boolean
 }
 
-async function createPublishableKey(apiKey: string): Promise<string> {
+async function createPublishableKey(apiKey: string, projectId: string): Promise<string> {
   const res = await fetch(`${API_BASE_URL}/v1/project/apikey`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
+      project: projectId,
     },
     body: JSON.stringify({ type: 'pk' }),
   })
@@ -335,7 +336,16 @@ export const login = Cli.create('login', {
     const { apiKey, publishableKey, projectId, project } = await waitForCallback(port, state)
 
     // Create a publishable key if the OAuth callback didn't return one
-    const finalPublishableKey = publishableKey ?? (await createPublishableKey(apiKey))
+    let finalPublishableKey = publishableKey
+    if (!finalPublishableKey) {
+      if (!projectId) {
+        throw new Errors.IncurError({
+          code: 'MISSING_PROJECT_ID',
+          message: 'Cannot create publishable key: project ID was not returned from the OAuth callback.',
+        })
+      }
+      finalPublishableKey = await createPublishableKey(apiKey, projectId)
+    }
 
     // Write to global credentials file
     ensureConfigDir()
