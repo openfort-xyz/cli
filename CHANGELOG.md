@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.15
+
+### Patch Changes
+
+- [#41](https://github.com/openfort-xyz/cli/pull/41) [`5c7494c`](https://github.com/openfort-xyz/cli/commit/5c7494c72bb0e6cd1dce3956d9ba16a41737a1da) Thanks [@n00m4d](https://github.com/n00m4d)! - Create public key on login command
+
 ## 0.1.14
 
 ### Patch Changes
