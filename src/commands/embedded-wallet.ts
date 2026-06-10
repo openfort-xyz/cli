@@ -137,7 +137,7 @@ embeddedWallet.command('setup', {
 
     // Step 4: Save keys to global credentials file
     ensureConfigDir()
-    writeEnvKey(CREDENTIALS_PATH, 'SHIELD_PUBLISHABLE_KEY', shieldData.api_key)
+    writeEnvKey(CREDENTIALS_PATH, 'SHIELD_API_KEY', shieldData.api_key)
     writeEnvKey(CREDENTIALS_PATH, 'SHIELD_SECRET_KEY', shieldData.api_secret)
     writeEnvKey(CREDENTIALS_PATH, 'SHIELD_ENCRYPTION_SHARE', shieldData.encryption_part)
 
