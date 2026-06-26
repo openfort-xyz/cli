@@ -11,6 +11,7 @@ overrides:
   js-yaml: '>=4.2.0'
   path-to-regexp: '>=8.4.0'
   picomatch: '>=4.0.4'
+  read-yaml-file: '2.1.0'
   ws: '>=8.20.1'
   yaml: '>=2.8.3'
 
