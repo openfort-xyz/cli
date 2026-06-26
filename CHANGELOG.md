@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.1.16
+
+### Patch Changes
+
+- [#48](https://github.com/openfort-xyz/cli/pull/48) [`03f7ed4`](https://github.com/openfort-xyz/cli/commit/03f7ed4d47bb7c0308bde2306af4318e9d7dc18c) Thanks [@jamalavedra](https://github.com/jamalavedra)! - Update CLI dependencies to the latest compatible versions.
+
 ## 0.1.15
 
 ### Patch Changes
