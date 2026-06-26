@@ -16,7 +16,7 @@ const transactionIntentItem = z.object({
     gasFee: z.string().optional(),
     status: z.number().optional(),
     to: z.string().optional(),
-    error: z.record(z.string(), z.unknown()).optional(),
+    error: z.unknown().optional(),
   }).optional(),
   interactions: z.array(z.object({
     to: z.string().optional(),
@@ -25,7 +25,7 @@ const transactionIntentItem = z.object({
   })).optional(),
   nextAction: z.object({
     type: z.string(),
-    payload: z.record(z.string(), z.unknown()).optional(),
+    payload: z.unknown().optional(),
   }).optional(),
 })
 

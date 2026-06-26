@@ -14,8 +14,14 @@ function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
   return Buffer.from(buffer).toString('base64url')
 }
 
-function stringToArrayBuffer(str: string): Uint8Array {
-  return new TextEncoder().encode(str)
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(bytes.byteLength)
+  new Uint8Array(buffer).set(bytes)
+  return buffer
+}
+
+function stringToArrayBuffer(str: string): ArrayBuffer {
+  return toArrayBuffer(new TextEncoder().encode(str))
 }
 
 function formatPEMBody(base64: string): string {
@@ -34,7 +40,7 @@ function sortObjectKeys(obj: unknown): unknown {
 }
 
 async function importPrivateKey(base64: string): Promise<webcrypto.CryptoKey> {
-  const binaryDer = Buffer.from(base64, 'base64')
+  const binaryDer = toArrayBuffer(Buffer.from(base64, 'base64'))
   return subtle.importKey(
     'pkcs8',
     binaryDer,

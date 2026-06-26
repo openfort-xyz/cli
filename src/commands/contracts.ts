@@ -8,7 +8,7 @@ const contractItem = z.object({
   chainId: z.number(),
   address: z.string(),
   deleted: z.boolean(),
-  abi: z.array(z.record(z.string(), z.unknown())),
+  abi: z.array(z.unknown()),
   publicVerification: z.boolean(),
 })
 
@@ -76,7 +76,7 @@ contracts.command('create', {
       name: c.options.name,
       address: c.options.address,
       chainId: c.options.chainId,
-      abi: c.options.abi ? JSON.parse(c.options.abi) as Array<Record<string, unknown>> : undefined,
+      abi: c.options.abi ? JSON.parse(c.options.abi) : undefined,
     })
     return c.ok(
       {
@@ -146,7 +146,7 @@ contracts.command('update', {
       name: c.options.name,
       address: c.options.address,
       chainId: c.options.chainId,
-      abi: c.options.abi ? JSON.parse(c.options.abi) as Array<Record<string, unknown>> : undefined,
+      abi: c.options.abi ? JSON.parse(c.options.abi) : undefined,
     })
     return c.ok({
       id: res.id,

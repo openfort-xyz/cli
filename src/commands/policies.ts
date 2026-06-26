@@ -1,5 +1,6 @@
 import { Cli, z } from 'incur'
 import type {
+  CreatePolicyV2RuleRequest,
   CreatePolicyV2RequestScope,
   ListPoliciesScopeItem,
 } from '@openfort/openfort-node'
@@ -95,7 +96,7 @@ policies.command('create', {
     },
   ],
   async run(c) {
-    const rules: Array<Record<string, unknown>> = JSON.parse(c.options.rules)
+    const rules: CreatePolicyV2RuleRequest[] = JSON.parse(c.options.rules)
     const scope: CreatePolicyV2RequestScope = c.options.scope
     const res = await getOpenfort().policies.create({
       scope,
@@ -141,7 +142,7 @@ policies.command('get', {
     accountId: z.string().nullable(),
     enabled: z.boolean(),
     priority: z.number(),
-    rules: z.array(z.record(z.string(), z.unknown())),
+    rules: z.array(z.unknown()),
   }),
   async run(c) {
     const p = await getOpenfort().policies.get(c.args.id)
@@ -186,7 +187,7 @@ policies.command('update', {
       description: c.options.description,
       enabled: c.options.enabled,
       priority: c.options.priority,
-      rules: c.options.rules ? JSON.parse(c.options.rules) as Array<Record<string, unknown>> : undefined,
+      rules: c.options.rules ? JSON.parse(c.options.rules) as CreatePolicyV2RuleRequest[] : undefined,
     })
     return c.ok({
       id: res.id,
