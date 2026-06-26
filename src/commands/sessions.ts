@@ -12,7 +12,7 @@ const sessionItem = z.object({
   isActive: z.boolean(),
   nextAction: z.object({
     type: z.string(),
-    payload: z.record(z.string(), z.unknown()).optional(),
+    payload: z.unknown().optional(),
   }).optional(),
 })
 

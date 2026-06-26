@@ -1,4 +1,5 @@
 import { Cli, z } from 'incur'
+import type { CreateTriggerRequest } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
 
 const apiTopics = [
@@ -198,7 +199,7 @@ subscriptions.command('create', {
     })),
   }),
   async run(c) {
-    const parsedTriggers: Array<{ type: string; target: string }> = JSON.parse(c.options.triggers)
+    const parsedTriggers: CreateTriggerRequest[] = JSON.parse(c.options.triggers)
     const res = await getOpenfort().subscriptions.create({
       topic: c.options.topic,
       triggers: parsedTriggers,
