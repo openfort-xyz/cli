@@ -7,6 +7,7 @@ import { paymasters } from './commands/paymasters.js'
 import { policies } from './commands/policies.js'
 import { sponsorship } from './commands/sponsorship.js'
 import { subscriptions } from './commands/subscriptions.js'
+import { logs } from './commands/logs.js'
 import { sessions } from './commands/sessions.js'
 import { transactions } from './commands/transactions.js'
 import { embeddedWallet } from './commands/embedded-wallet.js'
@@ -27,7 +28,7 @@ const cli = Cli.create('openfort', {
   }),
   sync: {
     depth: 2,
-    include: ['_root', 'accounts', 'transactions', 'policies', 'sponsorship', 'contracts', 'users', 'sessions', 'subscriptions', 'backend-wallet', 'embedded-wallet'],
+    include: ['_root', 'accounts', 'transactions', 'policies', 'sponsorship', 'contracts', 'users', 'sessions', 'subscriptions', 'logs', 'backend-wallet', 'embedded-wallet'],
     suggestions: [
       'create an EVM backend wallet',
       'list all accounts',
@@ -52,6 +53,7 @@ cli
   .command(sponsorship)
   .command(sessions)
   .command(subscriptions)
+  .command(logs)
   .command(transactions)
   .command(users)
   .command(backendWallet)

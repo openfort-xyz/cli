@@ -21,6 +21,7 @@
   "scripts": {
     "dev": "node --import tsx src/bin.ts",
     "build": "tsup",
+    "test": "vitest run",
     "gen": "pnpm build && incur gen --entry ./dist/cli.js",
     "openfort": "node --import tsx src/bin.ts",
     "skills": "pnpm openfort skills add",
@@ -40,7 +41,8 @@
     "@types/node": "latest",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.9"
   },
   "packageManager": "pnpm@10.32.1"
 }
