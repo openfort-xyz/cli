@@ -93,6 +93,7 @@ openfort skills add
 | `sessions`        | Manage session keys                                                 |
 | `subscriptions`   | Manage webhook subscriptions and triggers                           |
 | `transactions`    | Manage transaction intents                                          |
+| `logs`            | Inspect API request, webhook, and subscription logs                 |
 | `users`           | Manage authenticated users                                          |
 | `backend-wallet`  | Configure backend wallet signing keys                               |
 | `embedded-wallet` | Configure embedded wallet (Shield) API keys                         |

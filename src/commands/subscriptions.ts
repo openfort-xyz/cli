@@ -2,7 +2,7 @@ import { Cli, z } from 'incur'
 import type { CreateTriggerRequest } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
 
-const apiTopics = [
+export const apiTopics = [
   'transaction_intent.broadcast',
   'transaction_intent.successful',
   'transaction_intent.cancelled',
