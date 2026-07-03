@@ -1,6 +1,11 @@
 import { Cli, z } from 'incur'
-import type { GetProjectLogsParams, ListSubscriptionLogsParams } from '@openfort/openfort-node'
-import { getProjectLogs, getWebhookLogsByProjectId, listSubscriptionLogs } from '@openfort/openfort-node'
+import {
+  getProjectLogs,
+  getWebhookLogsByProjectId,
+  listSubscriptionLogs,
+  type GetProjectLogsParams,
+  type ListSubscriptionLogsParams,
+} from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
 import { apiTopics } from './subscriptions.js'
 
@@ -32,7 +37,12 @@ const subscriptionLogItem = z.object({
   requestID: z.string(),
 })
 
-function toRequestLogList(res: Awaited<ReturnType<typeof getProjectLogs>>) {
+const subscriptionLogList = z.object({
+  data: z.array(subscriptionLogItem),
+  total: z.number(),
+})
+
+export function toRequestLogList(res: Awaited<ReturnType<typeof getProjectLogs>>) {
   return {
     data: res.data.map((l) => ({
       id: l.id,
@@ -42,6 +52,21 @@ function toRequestLogList(res: Awaited<ReturnType<typeof getProjectLogs>>) {
       responseTime: l.response_time,
       requestBody: l.request_body,
       responseData: l.response_data,
+    })),
+    total: res.total,
+  }
+}
+
+export function toSubscriptionLogList(res: Awaited<ReturnType<typeof listSubscriptionLogs>>) {
+  return {
+    data: res.data.map((l) => ({
+      id: l.id,
+      createdAt: l.createdAt,
+      topic: l.topic,
+      status: l.status,
+      subscription: l.subscription,
+      trigger: l.trigger,
+      requestID: l.requestID,
     })),
     total: res.total,
   }
@@ -67,7 +92,9 @@ logs.command('list', {
   ],
   output: requestLogList,
   async run(c) {
+    // Configures the shared SDK client the standalone log functions depend on.
     getOpenfort()
+    // The SDK's GetProjectLogsParams type lags the API, which also accepts limit/skip.
     const params: GetProjectLogsParams & { limit?: number; skip?: number } = {
       method: c.options.method,
       id: c.options.id,
@@ -119,10 +146,7 @@ logs.command('subscriptions', {
     { options: { status: 'failed', limit: 20 }, description: 'Find failed webhook triggers when debugging' },
     { options: { subscription: 'sub_1a2b3c4d' }, description: 'Logs for a specific subscription' },
   ],
-  output: z.object({
-    data: z.array(subscriptionLogItem),
-    total: z.number(),
-  }),
+  output: subscriptionLogList,
   async run(c) {
     getOpenfort()
     const params: ListSubscriptionLogsParams = {
@@ -137,17 +161,6 @@ logs.command('subscriptions', {
       requestID: c.options.requestID,
     }
     const res = await listSubscriptionLogs(params)
-    return c.ok({
-      data: res.data.map((l) => ({
-        id: l.id,
-        createdAt: l.createdAt,
-        topic: l.topic,
-        status: l.status,
-        subscription: l.subscription,
-        trigger: l.trigger,
-        requestID: l.requestID,
-      })),
-      total: res.total,
-    })
+    return c.ok(toSubscriptionLogList(res))
   },
 })
