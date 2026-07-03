@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.2.0
+
+### Minor Changes
+
+- [#50](https://github.com/openfort-xyz/cli/pull/50) [`002e623`](https://github.com/openfort-xyz/cli/commit/002e623c45501890f714507e67c547503c9a493d) Thanks [@isardmart](https://github.com/isardmart)! - Add `logs` command to inspect API request, webhook, and triggered subscription logs
+
 ## 0.1.16
 
 ### Patch Changes
