@@ -211,7 +211,7 @@ function fragmentBridgePage(port: number): string {
       }
       // Clear the fragment from the URL immediately to minimize exposure
       history.replaceState(null, '', window.location.pathname);
-      fetch('http://localhost:${port}/callback/complete', {
+      fetch('http://127.0.0.1:${port}/callback/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: hash
@@ -228,6 +228,10 @@ function fragmentBridgePage(port: number): string {
 </html>`
 }
 
+function maskApiKey(apiKey: string): string {
+  return `${apiKey.slice(0, 8)}...${apiKey.slice(-4)}`
+}
+
 function waitForCallback(port: number, state: string): Promise<{ apiKey: string; publishableKey?: string; projectId?: string; project: string }> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
@@ -237,7 +241,7 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
     }, 5 * 60 * 1000)
 
     const server = createServer((req, res) => {
-      const url = new URL(req.url ?? '/', `http://localhost:${port}`)
+      const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`)
 
       if (url.pathname === '/callback' && req.method === 'GET') {
         // Check for error query params (these are non-sensitive and can stay as query params)
@@ -298,7 +302,18 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
       }
     })
 
-    server.listen(port)
+    server.on('error', (error: NodeJS.ErrnoException) => {
+      clearTimeout(timeout)
+      if (error.code === 'EADDRINUSE') {
+        reject(new Error(`Port ${port} is already in use. Set OPENFORT_CLI_CALLBACK_PORT to a free port and try again.`))
+      } else {
+        reject(error)
+      }
+    })
+
+    // Bind to the IPv4 loopback only: the OAuth redirect URI must match this
+    // origin, and the callback server should never be reachable from the LAN.
+    server.listen(port, '127.0.0.1')
   })
 }
 
@@ -306,14 +321,14 @@ function waitForCallback(port: number, state: string): Promise<{ apiKey: string;
 export const login = Cli.create('login', {
   description: 'Log in to Openfort via browser and save your API key.',
   output: z.object({
-    apiKey: z.string().describe('The API key saved to credentials'),
+    apiKey: z.string().describe('Masked API key (first 8 and last 4 characters)'),
     project: z.string().describe('The project name'),
     credentialsPath: z.string().describe('Path to the credentials file'),
   }),
   async run(c) {
     const state = generateState()
     const port = CLI_CALLBACK_PORT
-    const redirectUri = `http://localhost:${port}/callback`
+    const redirectUri = `http://127.0.0.1:${port}/callback`
 
     // Construct URL to auth page
     const authUrl = new URL(`${AUTH_PAGE_URL}/oauth/consent`)
@@ -360,7 +375,7 @@ export const login = Cli.create('login', {
     }
 
     return c.ok(
-      { apiKey, project, credentialsPath: CREDENTIALS_PATH },
+      { apiKey: maskApiKey(apiKey), project, credentialsPath: CREDENTIALS_PATH },
       {
         cta: {
           description: 'Next steps:',
