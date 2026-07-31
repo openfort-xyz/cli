@@ -5,6 +5,7 @@ import type {
   Interaction,
 } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
+import { parseJsonOption } from '../json.js'
 
 const requireWallet = middleware((c, next) => {
   const missing: string[] = []
@@ -353,7 +354,7 @@ evm.command('send-transaction', {
   }),
   async run(c) {
     const account = await getOpenfort().accounts.evm.backend.get({ id: c.args.id })
-    const interactions: Array<Interaction> = JSON.parse(c.options.interactions)
+    const interactions = parseJsonOption<Array<Interaction>>('interactions', c.options.interactions)
     const res = await getOpenfort().accounts.evm.backend.sendTransaction({
       account,
       chainId: c.options.chainId,

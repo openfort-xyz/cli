@@ -5,6 +5,7 @@ import type {
   ListPoliciesScopeItem,
 } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
+import { parseJsonOption } from '../json.js'
 
 const policyScopes = ['project', 'account', 'transaction'] as const
 
@@ -96,7 +97,7 @@ policies.command('create', {
     },
   ],
   async run(c) {
-    const rules: CreatePolicyV2RuleRequest[] = JSON.parse(c.options.rules)
+    const rules = parseJsonOption<CreatePolicyV2RuleRequest[]>('rules', c.options.rules)
     const scope: CreatePolicyV2RequestScope = c.options.scope
     const res = await getOpenfort().policies.create({
       scope,
@@ -187,7 +188,7 @@ policies.command('update', {
       description: c.options.description,
       enabled: c.options.enabled,
       priority: c.options.priority,
-      rules: c.options.rules ? JSON.parse(c.options.rules) as CreatePolicyV2RuleRequest[] : undefined,
+      rules: c.options.rules ? parseJsonOption<CreatePolicyV2RuleRequest[]>('rules', c.options.rules) : undefined,
     })
     return c.ok({
       id: res.id,

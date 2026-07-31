@@ -1,5 +1,7 @@
 import { Cli, z } from 'incur'
+import type { Abi } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
+import { parseJsonOption } from '../json.js'
 
 const contractItem = z.object({
   id: z.string(),
@@ -76,7 +78,7 @@ contracts.command('create', {
       name: c.options.name,
       address: c.options.address,
       chainId: c.options.chainId,
-      abi: c.options.abi ? JSON.parse(c.options.abi) : undefined,
+      abi: c.options.abi ? parseJsonOption<Abi[]>('abi', c.options.abi) : undefined,
     })
     return c.ok(
       {
@@ -146,7 +148,7 @@ contracts.command('update', {
       name: c.options.name,
       address: c.options.address,
       chainId: c.options.chainId,
-      abi: c.options.abi ? JSON.parse(c.options.abi) : undefined,
+      abi: c.options.abi ? parseJsonOption<Abi[]>('abi', c.options.abi) : undefined,
     })
     return c.ok({
       id: res.id,

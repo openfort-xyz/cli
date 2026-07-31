@@ -1,5 +1,6 @@
 import { Cli, z } from 'incur'
 import { getOpenfort } from '../client.js'
+import { parseJsonOption } from '../json.js'
 
 const transactionIntentItem = z.object({
   id: z.string(),
@@ -102,7 +103,7 @@ transactions.command('create', {
     },
   ],
   async run(c) {
-    const interactions: Array<{ to?: string; data?: string; value?: string }> = JSON.parse(c.options.interactions)
+    const interactions = parseJsonOption<Array<{ to?: string; data?: string; value?: string }>>('interactions', c.options.interactions)
     const res = await getOpenfort().transactionIntents.create({
       account: c.options.account,
       chainId: c.options.chainId,
@@ -224,7 +225,7 @@ transactions.command('estimate', {
     gasPrice: z.string(),
   }),
   async run(c) {
-    const interactions: Array<{ to?: string; data?: string; value?: string }> = JSON.parse(c.options.interactions)
+    const interactions = parseJsonOption<Array<{ to?: string; data?: string; value?: string }>>('interactions', c.options.interactions)
     const res = await getOpenfort().transactionIntents.estimateCost({
       account: c.options.account,
       chainId: c.options.chainId,
