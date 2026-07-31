@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { chmodSync, existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { Errors } from 'incur'
 
 export function loadEnvFile(envPath: string): Map<string, string> {
@@ -26,7 +26,13 @@ export function writeEnvKey(envPath: string, key: string, value: string) {
   for (const [k, v] of entries) {
     lines.push(`${k}=${v}`)
   }
-  writeFileSync(envPath, `${lines.join('\n')}\n`)
+
+  // Write to a sibling temp file and rename so a crash can't clobber existing
+  // credentials. The file holds private keys, so keep it owner-only.
+  const tempPath = `${envPath}.${process.pid}.tmp`
+  writeFileSync(tempPath, `${lines.join('\n')}\n`, { mode: 0o600 })
+  renameSync(tempPath, envPath)
+  chmodSync(envPath, 0o600)
 }
 
 export function requireApiKey(): string {

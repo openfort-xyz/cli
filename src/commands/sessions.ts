@@ -1,5 +1,6 @@
 import { Cli, z } from 'incur'
 import { getOpenfort } from '../client.js'
+import { parseJsonOption } from '../json.js'
 
 const sessionItem = z.object({
   id: z.string(),
@@ -92,7 +93,7 @@ sessions.command('create', {
       account: c.options.account,
       limit: c.options.limit,
       policy: c.options.policy,
-      whitelist: c.options.whitelist ? JSON.parse(c.options.whitelist) as string[] : undefined,
+      whitelist: c.options.whitelist ? parseJsonOption<string[]>('whitelist', c.options.whitelist) : undefined,
     })
     return c.ok(
       {
