@@ -31,6 +31,9 @@ declare module 'incur' {
       'contracts update': { args: { id: string }; options: { name?: string; address?: string; chainId?: number; abi?: string } }
       'embedded-wallet setup': { args: {}; options: { project?: string } }
       'login': { args: {}; options: {} }
+      'logs list': { args: {}; options: { method?: string[]; id?: string; limit?: number; skip?: number } }
+      'logs subscriptions': { args: {}; options: { limit?: number; skip?: number; order?: "asc" | "desc"; topic?: "transaction_intent.broadcast" | "transaction_intent.successful" | "transaction_intent.cancelled" | "transaction_intent.failed" | "balance.project" | "balance.contract" | "balance.dev_account" | "test" | "user.created" | "user.updated" | "user.deleted" | "account.created"; status?: "success" | "failed"; object?: string; subscription?: string; trigger?: string; requestID?: string } }
+      'logs webhook': { args: {}; options: {} }
       'message hash': { args: { message: string }; options: {} }
       'paymasters create': { args: {}; options: { address: string; name?: string; url?: string } }
       'paymasters delete': { args: { id: string }; options: {} }
