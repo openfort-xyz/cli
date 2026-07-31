@@ -11,8 +11,7 @@
   },
   "type": "module",
   "bin": {
-    "openfort": "./dist/bin.js",
-    "openfort.src": "./src/bin.ts"
+    "openfort": "./dist/bin.js"
   },
   "files": [
     "dist"
