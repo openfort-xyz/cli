@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.2.2
+
+### Patch Changes
+
+- [#55](https://github.com/openfort-xyz/cli/pull/55) [`1c521d9`](https://github.com/openfort-xyz/cli/commit/1c521d96490a8beff4301eb990590a6fd4c47a9b) Thanks [@n00m4d](https://github.com/n00m4d)! - Login to project with created backend wallet key
+
 ## 0.2.1
 
 ### Patch Changes
