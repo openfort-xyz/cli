@@ -1,4 +1,5 @@
 import { randomBytes, subtle, type webcrypto } from 'node:crypto'
+import { createInterface } from 'node:readline/promises'
 import { Cli, z, Errors } from 'incur'
 import { API_BASE_URL } from '../constants.js'
 import { CREDENTIALS_PATH, ensureConfigDir } from '../config.js'
@@ -102,6 +103,102 @@ async function signWalletAuthJwt(
   return `${signingInput}.${arrayBufferToBase64Url(signature)}`
 }
 
+// --- API helpers ---
+
+type KeyPair = Awaited<ReturnType<typeof generateKeyPair>>
+
+const ROTATE_SCOPE_HINT =
+  'Your API key does not have the "api_key:rotate" scope. Run "openfort login" again and make sure the API rotate scope is enabled.'
+
+function toPEM(publicKey: string): string {
+  return `-----BEGIN PUBLIC KEY-----\n${publicKey}\n-----END PUBLIC KEY-----`
+}
+
+async function postWithWalletAuth(
+  apiKey: string,
+  path: string,
+  body: Record<string, unknown>,
+  privateKey: webcrypto.CryptoKey
+): Promise<Response> {
+  const jwt = await signWalletAuthJwt(privateKey, 'POST', path, body)
+  return fetch(`${API_BASE_URL}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({ ...body, walletAuthToken: jwt }),
+  })
+}
+
+// incur only prints code + message on a TTY, so the scope note has to live in the message.
+export function rotateError(status: number, text: string): Errors.IncurError {
+  const missingScope = status === 403
+  const message = `Failed to rotate wallet secret: ${text}`
+  return new Errors.IncurError({
+    code: 'ROTATE_SECRET_FAILED',
+    message: missingScope ? `${message}\n\n${ROTATE_SCOPE_HINT}` : message,
+    retryable: !missingScope,
+  })
+}
+
+async function rotateSecret(apiKey: string, keys: KeyPair, keyId: string): Promise<void> {
+  const res = await postWithWalletAuth(
+    apiKey,
+    '/v2/accounts/backend/rotate-secrets',
+    { newPublicKey: toPEM(keys.publicKey), newKeyId: keyId },
+    keys.privateKeyCrypto
+  )
+  if (!res.ok) throw rotateError(res.status, await res.text())
+}
+
+async function storeKeyReference(apiKey: string, publicKey: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/v1/project/apikey`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({ type: 'pk_wallet', uuid: publicKey }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Errors.IncurError({
+      code: 'STORE_KEY_FAILED',
+      message: `Failed to store wallet key reference: ${text}`,
+      retryable: true,
+    })
+  }
+}
+
+const ROTATE_WARNING =
+  'This project already has a backend wallet secret. Rotating it generates a new key and the current one stops working immediately, breaking any service that still uses it.'
+
+async function confirmRotation(agent: boolean): Promise<boolean> {
+  if (agent || !process.stdin.isTTY) {
+    throw new Errors.IncurError({
+      code: 'WALLET_SECRET_EXISTS',
+      message: `${ROTATE_WARNING}\n\nRe-run with --rotate to replace it.`,
+    })
+  }
+  const rl = createInterface({ input: process.stdin, output: process.stderr })
+  try {
+    const answer = await rl.question(`${ROTATE_WARNING}\nRotate it now? [y/N] `)
+    return /^y(es)?$/i.test(answer.trim())
+  } finally {
+    rl.close()
+  }
+}
+
+// Store raw base64 (no PEM headers) — the SDK wraps it in PEM internally
+function saveKeys(keys: KeyPair, keyId: string): void {
+  ensureConfigDir()
+  writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_PUBLIC_KEY', keys.publicKey.replaceAll('\n', ''))
+  writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_SECRET', keys.privateKey.replaceAll('\n', ''))
+  writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_KEY_ID', keyId)
+}
+
 // --- Response types ---
 
 interface RevokeSecretResponse {
@@ -122,80 +219,66 @@ backendWallet.command('setup', {
     message: z.string(),
     credentialsPath: z.string(),
   }),
+  options: z.object({
+    rotate: z.boolean().optional().describe('Rotate the wallet secret without asking if the project already has one'),
+  }),
   examples: [
     {
       description: 'Set up backend wallet signing keys and save to credentials',
     },
+    {
+      options: { rotate: true },
+      description: 'Replace an existing wallet secret without a confirmation prompt',
+    },
   ],
-  hint: 'Requires OPENFORT_API_KEY. Run "openfort login" first.',
+  hint: 'Requires OPENFORT_API_KEY. Run "openfort login" first. If the project already has a wallet secret, you are asked before it is rotated (requires the "api_key:rotate" scope).',
   async run(c) {
     const apiKey = requireApiKey()
 
-    // Step 1: Generate ECDSA P-256 key pair
-    const { publicKey, privateKey, privateKeyCrypto } = await generateKeyPair()
-    const publicKeyPEM = `-----BEGIN PUBLIC KEY-----\n${publicKey}\n-----END PUBLIC KEY-----`
-
-    // Step 2: Register the public key with the backend
-    const path = '/v2/accounts/backend/register-secret'
+    const keys = await generateKeyPair()
     const keyId = `ws_${Date.now()}`
-    const bodyWithoutToken = { publicKey: publicKeyPEM, keyId }
 
-    const jwt = await signWalletAuthJwt(privateKeyCrypto, 'POST', path, bodyWithoutToken)
+    const registerRes = await postWithWalletAuth(
+      apiKey,
+      '/v2/accounts/backend/register-secret',
+      { publicKey: toPEM(keys.publicKey), keyId },
+      keys.privateKeyCrypto
+    )
 
-    const registerRes = await fetch(`${API_BASE_URL}${path}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        ...bodyWithoutToken,
-        walletAuthToken: jwt,
-      }),
-    })
-
+    let message = `Backend wallet keys were created and saved to ${CREDENTIALS_PATH}`
     if (!registerRes.ok) {
       const text = await registerRes.text()
-      throw new Errors.IncurError({
-        code: 'REGISTER_SECRET_FAILED',
-        message: `Failed to register wallet secret: ${text}`,
-        retryable: true,
-      })
+      if (!text.includes('Wallet already exists')) {
+        throw new Errors.IncurError({
+          code: 'REGISTER_SECRET_FAILED',
+          message: `Failed to register wallet secret: ${text}`,
+          retryable: true,
+        })
+      }
+      // The existing secret is one-time shown and cannot be fetched, so the only way forward is to replace it.
+      const approved = c.options.rotate || (await confirmRotation(c.agent))
+      if (!approved) {
+        throw new Errors.IncurError({
+          code: 'ROTATION_CANCELLED',
+          message: 'Wallet secret rotation cancelled. The existing secret is unchanged.',
+        })
+      }
+      await rotateSecret(apiKey, keys, keyId)
+      message = `Project already had a wallet secret; it was rotated and the new keys were saved to ${CREDENTIALS_PATH}`
     }
 
-    // Step 3: Store the key reference in project API keys
-    const storeRes = await fetch(`${API_BASE_URL}/v1/project/apikey`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({ type: 'pk_wallet', uuid: publicKey }),
-    })
-
-    if (!storeRes.ok) {
-      const text = await storeRes.text()
-      throw new Errors.IncurError({
-        code: 'STORE_KEY_FAILED',
-        message: `Failed to store wallet key reference: ${text}`,
-        retryable: true,
-      })
-    }
-
-    // Step 4: Save keys to global credentials file
-    // Store raw base64 (no PEM headers) — the SDK wraps it in PEM internally
-    ensureConfigDir()
-    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_PUBLIC_KEY', publicKey.replaceAll('\n', ''))
-    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_SECRET', privateKey.replaceAll('\n', ''))
-    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_KEY_ID', keyId)
+    await storeKeyReference(apiKey, keys.publicKey)
+    saveKeys(keys, keyId)
 
     return c.ok(
-      { message: `Backend wallet keys were created and saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH },
+      { message, credentialsPath: CREDENTIALS_PATH },
       {
         cta: {
           description: 'Next steps:',
           commands: [
-            { command: `embedded-wallet setup`, description: 'Set up embedded wallet keys' },
+            { command: 'accounts evm create', description: 'Create an EVM backend wallet' },
+            { command: 'accounts solana create', description: 'Create a Solana backend wallet' },
+            { command: 'accounts list', description: 'List your backend wallets' },
           ],
         },
       },
@@ -275,62 +358,12 @@ backendWallet.command('rotate', {
   async run(c) {
     const apiKey = requireApiKey()
 
-    // Step 1: Generate new ECDSA P-256 key pair
-    const { publicKey, privateKey, privateKeyCrypto } = await generateKeyPair()
-    const newPublicKeyPEM = `-----BEGIN PUBLIC KEY-----\n${publicKey}\n-----END PUBLIC KEY-----`
+    const keys = await generateKeyPair()
+    const keyId = `ws_${Date.now()}`
 
-    // Step 2: Call rotate endpoint with JWT proof of the new key
-    const path = '/v2/accounts/backend/rotate-secrets'
-    const newKeyId = `ws_${Date.now()}`
-    const bodyWithoutToken = { newPublicKey: newPublicKeyPEM, newKeyId }
-
-    const jwt = await signWalletAuthJwt(privateKeyCrypto, 'POST', path, bodyWithoutToken)
-
-    const rotateRes = await fetch(`${API_BASE_URL}${path}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        ...bodyWithoutToken,
-        walletAuthToken: jwt,
-      }),
-    })
-
-    if (!rotateRes.ok) {
-      const text = await rotateRes.text()
-      throw new Errors.IncurError({
-        code: 'ROTATE_SECRET_FAILED',
-        message: `Failed to rotate wallet secret: ${text}`,
-        retryable: true,
-      })
-    }
-
-    // Step 3: Update the key reference in project API keys
-    const storeRes = await fetch(`${API_BASE_URL}/v1/project/apikey`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({ type: 'pk_wallet', uuid: publicKey }),
-    })
-
-    if (!storeRes.ok) {
-      const text = await storeRes.text()
-      throw new Errors.IncurError({
-        code: 'STORE_KEY_FAILED',
-        message: `Failed to store rotated wallet key reference: ${text}`,
-        retryable: true,
-      })
-    }
-
-    // Step 4: Save new keys to global credentials file
-    ensureConfigDir()
-    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_PUBLIC_KEY', publicKey.replaceAll('\n', ''))
-    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_SECRET', privateKey.replaceAll('\n', ''))
-    writeEnvKey(CREDENTIALS_PATH, 'OPENFORT_WALLET_KEY_ID', newKeyId)
+    await rotateSecret(apiKey, keys, keyId)
+    await storeKeyReference(apiKey, keys.publicKey)
+    saveKeys(keys, keyId)
 
     return c.ok({ message: `Wallet secret rotated and new keys saved to ${CREDENTIALS_PATH}`, credentialsPath: CREDENTIALS_PATH })
   },
