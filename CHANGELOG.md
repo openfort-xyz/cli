@@ -1,5 +1,11 @@
 # @openfort/cli
 
+## 0.2.3
+
+### Patch Changes
+
+- [#57](https://github.com/openfort-xyz/cli/pull/57) [`1940448`](https://github.com/openfort-xyz/cli/commit/19404482558f8f8159bb193790abdc73dc8f6b0b) Thanks [@jamalavedra](https://github.com/jamalavedra)! - Accept the `solana_transaction.*`, `funding.session.updated` and `transaction.*` webhook topics in `subscriptions create --topic` and `logs subscriptions --topic`.
+
 ## 0.2.2
 
 ### Patch Changes
