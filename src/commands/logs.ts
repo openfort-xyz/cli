@@ -7,7 +7,7 @@ import {
   type ListSubscriptionLogsParams,
 } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
-import { apiTopics } from './subscriptions.js'
+import { apiTopics, toApiTopic } from './subscriptions.js'
 
 const apiStatuses = ['success', 'failed'] as const
 const sortOrders = ['asc', 'desc'] as const
@@ -153,7 +153,7 @@ logs.command('subscriptions', {
       limit: c.options.limit,
       skip: c.options.skip,
       order: c.options.order,
-      topic: c.options.topic,
+      topic: c.options.topic && toApiTopic(c.options.topic),
       status: c.options.status,
       object: c.options.object,
       subscription: c.options.subscription,

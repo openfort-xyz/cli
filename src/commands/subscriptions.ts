@@ -1,5 +1,5 @@
 import { Cli, z } from 'incur'
-import type { CreateTriggerRequest } from '@openfort/openfort-node'
+import type { APITopic, CreateTriggerRequest } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
 import { parseJsonOption } from '../json.js'
 
@@ -16,7 +16,17 @@ export const apiTopics = [
   'user.updated',
   'user.deleted',
   'account.created',
+  'solana_transaction.broadcast',
+  'solana_transaction.successful',
+  'solana_transaction.failed',
+  'funding.session.updated',
+  'transaction.submitted',
+  'transaction.succeeded',
+  'transaction.failed',
 ] as const
+
+// The SDK's generated APITopic type lags the API, which accepts every topic above.
+export const toApiTopic = (topic: (typeof apiTopics)[number]) => topic as APITopic
 
 const apiTriggerTypes = ['webhook', 'email'] as const
 
@@ -202,7 +212,7 @@ subscriptions.command('create', {
   async run(c) {
     const parsedTriggers = parseJsonOption<CreateTriggerRequest[]>('triggers', c.options.triggers)
     const res = await getOpenfort().subscriptions.create({
-      topic: c.options.topic,
+      topic: toApiTopic(c.options.topic),
       triggers: parsedTriggers,
     })
     return c.ok(
