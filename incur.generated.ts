@@ -23,7 +23,7 @@ declare module 'incur' {
       'accounts solana transfer': { args: { id: string }; options: { to: string; amount: string; token?: string; cluster: "devnet" | "mainnet-beta" } }
       'backend-wallet revoke': { args: {}; options: {} }
       'backend-wallet rotate': { args: {}; options: {} }
-      'backend-wallet setup': { args: {}; options: {} }
+      'backend-wallet setup': { args: {}; options: { rotate?: boolean } }
       'contracts create': { args: {}; options: { name: string; address: string; chainId: number; abi?: string } }
       'contracts delete': { args: { id: string }; options: {} }
       'contracts get': { args: { id: string }; options: {} }
@@ -32,7 +32,7 @@ declare module 'incur' {
       'embedded-wallet setup': { args: {}; options: { project?: string } }
       'login': { args: {}; options: {} }
       'logs list': { args: {}; options: { method?: string[]; id?: string; limit?: number; skip?: number } }
-      'logs subscriptions': { args: {}; options: { limit?: number; skip?: number; order?: "asc" | "desc"; topic?: "transaction_intent.broadcast" | "transaction_intent.successful" | "transaction_intent.cancelled" | "transaction_intent.failed" | "balance.project" | "balance.contract" | "balance.dev_account" | "test" | "user.created" | "user.updated" | "user.deleted" | "account.created"; status?: "success" | "failed"; object?: string; subscription?: string; trigger?: string; requestID?: string } }
+      'logs subscriptions': { args: {}; options: { limit?: number; skip?: number; order?: "asc" | "desc"; topic?: "transaction_intent.broadcast" | "transaction_intent.successful" | "transaction_intent.cancelled" | "transaction_intent.failed" | "balance.project" | "balance.contract" | "balance.dev_account" | "test" | "user.created" | "user.updated" | "user.deleted" | "account.created" | "solana_transaction.broadcast" | "solana_transaction.successful" | "solana_transaction.failed" | "funding.session.updated" | "transaction.submitted" | "transaction.succeeded" | "transaction.failed"; status?: "success" | "failed"; object?: string; subscription?: string; trigger?: string; requestID?: string } }
       'logs webhook': { args: {}; options: {} }
       'message hash': { args: { message: string }; options: {} }
       'paymasters create': { args: {}; options: { address: string; name?: string; url?: string } }
@@ -57,7 +57,7 @@ declare module 'incur' {
       'sponsorship get': { args: { id: string }; options: {} }
       'sponsorship list': { args: {}; options: { limit?: number; skip?: number; enabled?: boolean } }
       'sponsorship update': { args: { id: string }; options: { name?: string; strategy?: "pay_for_user" | "charge_custom_tokens" | "fixed_rate"; policyId?: string } }
-      'subscriptions create': { args: {}; options: { topic: "transaction_intent.broadcast" | "transaction_intent.successful" | "transaction_intent.cancelled" | "transaction_intent.failed" | "balance.project" | "balance.contract" | "balance.dev_account" | "test" | "user.created" | "user.updated" | "user.deleted" | "account.created"; triggers: string } }
+      'subscriptions create': { args: {}; options: { topic: "transaction_intent.broadcast" | "transaction_intent.successful" | "transaction_intent.cancelled" | "transaction_intent.failed" | "balance.project" | "balance.contract" | "balance.dev_account" | "test" | "user.created" | "user.updated" | "user.deleted" | "account.created" | "solana_transaction.broadcast" | "solana_transaction.successful" | "solana_transaction.failed" | "funding.session.updated" | "transaction.submitted" | "transaction.succeeded" | "transaction.failed"; triggers: string } }
       'subscriptions delete': { args: { id: string }; options: {} }
       'subscriptions get': { args: { id: string }; options: {} }
       'subscriptions list': { args: {}; options: {} }
