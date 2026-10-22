@@ -17,3 +17,9 @@ minimumReleaseAgeExclude:
 trustPolicy: no-downgrade
 
 blockExoticSubdeps: true
+
+auditConfig:
+  ignoreGhsas:
+    # braces: no patched release exists; dev-only via @changesets/cli >
+    # @changesets/config > micromatch.
+    - GHSA-vfj7-8cjw-p6xm
