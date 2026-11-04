@@ -7,7 +7,8 @@ settings:
 overrides:
   axios: '>=1.20.0'
   esbuild: '>=0.28.1'
-  follow-redirects: '>=1.16.1'
+  follow-redirects: '>=1.16.2'
+  zod@<4.6.6: 4.6.7
   form-data: '>=4.0.6'
   picomatch: '>=4.0.4'
   postcss: '>=8.5.18'
@@ -20,8 +21,8 @@ importers:
   .:
     dependencies:
       '@openfort/openfort-node':
-        specifier: ^0.11.0
-        version: 0.11.0(viem@2.55.10(typescript@5.9.3)(zod@4.3.6))
+        specifier: ^0.13.3
+        version: 0.13.3(viem@2.55.10(typescript@5.9.3)(zod@4.6.7))
       incur:
         specifier: ^0.4.26
         version: 0.4.26
@@ -30,7 +31,7 @@ importers:
         version: 11.0.0
       viem:
         specifier: ^2.55.10
-        version: 2.55.10(typescript@5.9.3)(zod@4.3.6)
+        version: 2.55.10(typescript@5.9.3)(zod@4.6.7)
     devDependencies:
       '@changesets/changelog-github':
         specifier: ^0.7.0
@@ -342,8 +343,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@openfort/openfort-node@0.11.0':
-    resolution: {integrity: sha512-RRwuw6VjsElu8siqu9X/iUUmOLuQgGscRmPvpaObCioAg0JL7BKnVKmSGay3ButX0un0CmBGqkuqS57Mzz79uA==}
+  '@openfort/openfort-node@0.13.3':
+    resolution: {integrity: sha512-6DyiFfYCzaRypmdj46Xwcg2UalWBvMUbs+DePR7YYxgwv/KE2LN4rA/mGb1rmzePXPX1LhGP7WI+TuvolKpd1g==}
     peerDependencies:
       '@solana-program/compute-budget': '>=0.7.0'
       '@solana-program/system': '>=0.7.0'
@@ -368,8 +369,8 @@ packages:
       viem:
         optional: true
 
-  '@openfort/shield-js@0.1.37':
-    resolution: {integrity: sha512-DiSTo0keqbAtkG4vG/07lrRoDjgonDSNmyEHNillByaBoDlna/kDBf5r1FWVYXskwXVUv7UA8YDtk9cgYdATUg==}
+  '@openfort/shield-js@0.2.2':
+    resolution: {integrity: sha512-1hycFfKBJgUjt0APHnCH8BhLQ80o26eVvrOkyP6atbcDLSLckdDkMuANhqPwmjjqBRiqVjavzpzxaFkoo5NLRA==}
 
   '@oxc-project/types@0.155.0':
     resolution: {integrity: sha512-SeE8JPwW1xs1tHeNycjUtUBdhorRa8o4jlvjwk49R7/Z291i+4DQa7JJIgOm/TaYQZx+QrPQbVJ/9c8dMIZN8Q==}
@@ -678,7 +679,7 @@ packages:
     resolution: {integrity: sha512-Ofer5QUnuUdTFsBRwARMoWKOH1ND5ehwYhJ3OJ/BQO+StkwQjHw0XyVh4vDttzHB7QOFhPHa/o413PJ82gU/Tg==}
     peerDependencies:
       typescript: '>=5.0.4'
-      zod: ^3.22.0 || ^4.0.0
+      zod: 4.6.7
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -908,8 +909,8 @@ packages:
   fix-dts-default-cjs-exports@1.0.1:
     resolution: {integrity: sha512-pVIECanWFC61Hzl2+oOCtoJ3F17kglZC/6N94eRWycFgBH35hHx0Li604ZIzhseh97mf2p0cv7vVrOZGoqhlEg==}
 
-  follow-redirects@1.16.1:
-    resolution: {integrity: sha512-FNvFGzoMLWmE6Yj9spb/zjd7yiNCHiAW9/Tg9CXrQ8wuu32HtlJOwWO11OJafl5FfY3DxTdQ0vj42zU1kvv5jg==}
+  follow-redirects@1.16.2:
+    resolution: {integrity: sha512-/kVP2U8z596Ia0gwFrwyIeo74ta5aVmSeU1FfAUMAmcEP5EP7zydmag3SLiN64NaRKef3lxsq7i/g7ltJQDGow==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -1623,11 +1624,8 @@ packages:
     engines: {node: '>= 14.6'}
     hasBin: true
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
-
-  zod@4.3.6:
-    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
 snapshots:
 
@@ -1912,7 +1910,7 @@ snapshots:
 
   '@modelcontextprotocol/server@2.0.0-alpha.4':
     dependencies:
-      zod: 4.3.6
+      zod: 4.6.7
 
   '@noble/ciphers@1.3.0': {}
 
@@ -1934,21 +1932,21 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@openfort/openfort-node@0.11.0(viem@2.55.10(typescript@5.9.3)(zod@4.3.6))':
+  '@openfort/openfort-node@0.13.3(viem@2.55.10(typescript@5.9.3)(zod@4.6.7))':
     dependencies:
-      '@openfort/shield-js': 0.1.37
+      '@openfort/shield-js': 0.2.2
       axios: 1.20.0
       axios-retry: 4.5.0(axios@1.20.0)
       bs58: 6.0.0
       jose: 6.2.5
-      zod: 3.25.76
+      zod: 4.6.7
     optionalDependencies:
-      viem: 2.55.10(typescript@5.9.3)(zod@4.3.6)
+      viem: 2.55.10(typescript@5.9.3)(zod@4.6.7)
     transitivePeerDependencies:
       - debug
       - supports-color
 
-  '@openfort/shield-js@0.1.37':
+  '@openfort/shield-js@0.2.2':
     dependencies:
       axios: 1.20.0
       axios-retry: 4.5.0(axios@1.20.0)
@@ -2155,10 +2153,10 @@ snapshots:
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
 
-  abitype@1.2.3(typescript@5.9.3)(zod@4.3.6):
+  abitype@1.2.3(typescript@5.9.3)(zod@4.6.7):
     optionalDependencies:
       typescript: 5.9.3
-      zod: 4.3.6
+      zod: 4.6.7
 
   acorn@8.16.0: {}
 
@@ -2189,7 +2187,7 @@ snapshots:
 
   axios@1.20.0:
     dependencies:
-      follow-redirects: 1.16.1
+      follow-redirects: 1.16.2
       form-data: 4.0.6
       https-proxy-agent: 5.0.1
       proxy-from-env: 2.1.0
@@ -2378,7 +2376,7 @@ snapshots:
       mlly: 1.8.0
       rollup: 4.59.0
 
-  follow-redirects@1.16.1: {}
+  follow-redirects@1.16.2: {}
 
   form-data@4.0.6:
     dependencies:
@@ -2473,7 +2471,7 @@ snapshots:
       '@toon-format/toon': 2.3.1
       tokenx: 1.3.0
       yaml: 2.8.3
-      zod: 4.3.6
+      zod: 4.6.7
 
   is-docker@3.0.0: {}
 
@@ -2639,7 +2637,7 @@ snapshots:
 
   outdent@0.5.0: {}
 
-  ox@0.14.33(typescript@5.9.3)(zod@4.3.6):
+  ox@0.14.33(typescript@5.9.3)(zod@4.6.7):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 1.3.0
@@ -2647,7 +2645,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.2.3(typescript@5.9.3)(zod@4.3.6)
+      abitype: 1.2.3(typescript@5.9.3)(zod@4.6.7)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.9.3
@@ -2914,15 +2912,15 @@ snapshots:
 
   universalify@0.1.2: {}
 
-  viem@2.55.10(typescript@5.9.3)(zod@4.3.6):
+  viem@2.55.10(typescript@5.9.3)(zod@4.6.7):
     dependencies:
       '@noble/curves': 1.9.1
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.2.3(typescript@5.9.3)(zod@4.3.6)
+      abitype: 1.2.3(typescript@5.9.3)(zod@4.6.7)
       isows: 1.0.7(ws@8.21.0)
-      ox: 0.14.33(typescript@5.9.3)(zod@4.3.6)
+      ox: 0.14.33(typescript@5.9.3)(zod@4.6.7)
       ws: 8.21.0
     optionalDependencies:
       typescript: 5.9.3
@@ -2997,6 +2995,4 @@ snapshots:
 
   yaml@2.8.3: {}
 
-  zod@3.25.76: {}
-
-  zod@4.3.6: {}
+  zod@4.6.7: {}

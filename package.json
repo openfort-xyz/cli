@@ -1,7 +1,7 @@
 {
   "name": "@openfort/cli",
   "version": "0.2.2",
-  "description": "Openfort CLI — manage wallets, policies, and transactions from the terminal.",
+  "description": "Openfort CLI \u2014 manage wallets, policies, and transactions from the terminal.",
   "author": "Openfort (https://www.openfort.io)",
   "bugs": "https://github.com/openfort-xyz/cli/issues",
   "homepage": "https://github.com/openfort-xyz/cli#readme",
@@ -32,7 +32,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@openfort/openfort-node": "^0.11.0",
+    "@openfort/openfort-node": "^0.13.3",
     "incur": "^0.4.26",
     "open": "^11.0.0",
     "viem": "^2.55.10"
