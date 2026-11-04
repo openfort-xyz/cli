@@ -1,5 +1,13 @@
 # @openfort/cli
 
+## 0.2.3
+
+### Patch Changes
+
+- [#61](https://github.com/openfort-xyz/cli/pull/61) [`dee0b1b`](https://github.com/openfort-xyz/cli/commit/dee0b1be98f038c5ebca52de9e9611c28692284b) Thanks [@jamalavedra](https://github.com/jamalavedra)! - Depend on `@openfort/openfort-node` ^0.14.0, which moves to zod 4.6.7 and patched axios, follow-redirects and undici, so global installs of the CLI no longer pull the vulnerable versions.
+
+- [#57](https://github.com/openfort-xyz/cli/pull/57) [`1940448`](https://github.com/openfort-xyz/cli/commit/19404482558f8f8159bb193790abdc73dc8f6b0b) Thanks [@jamalavedra](https://github.com/jamalavedra)! - Accept the `solana_transaction.*`, `funding.session.updated` and `transaction.*` webhook topics in `subscriptions create --topic` and `logs subscriptions --topic`.
+
 ## 0.2.2
 
 ### Patch Changes
