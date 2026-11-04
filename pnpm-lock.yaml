@@ -21,8 +21,8 @@ importers:
   .:
     dependencies:
       '@openfort/openfort-node':
-        specifier: ^0.13.3
-        version: 0.13.3(viem@2.55.10(typescript@5.9.3)(zod@4.6.7))
+        specifier: ^0.14.0
+        version: 0.14.0(viem@2.55.10(typescript@5.9.3)(zod@4.6.7))
       incur:
         specifier: ^0.4.26
         version: 0.4.26
@@ -343,8 +343,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@openfort/openfort-node@0.13.3':
-    resolution: {integrity: sha512-6DyiFfYCzaRypmdj46Xwcg2UalWBvMUbs+DePR7YYxgwv/KE2LN4rA/mGb1rmzePXPX1LhGP7WI+TuvolKpd1g==}
+  '@openfort/openfort-node@0.14.0':
+    resolution: {integrity: sha512-jYZHPOqpesbdgPvWu/2S2EAxdyy2WgtXl852naZ6qw1+B4DLSSyJQZ1nylbs/h0AimO0vDasyzzPUehfRVWGLA==}
     peerDependencies:
       '@solana-program/compute-budget': '>=0.7.0'
       '@solana-program/system': '>=0.7.0'
@@ -1932,7 +1932,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@openfort/openfort-node@0.13.3(viem@2.55.10(typescript@5.9.3)(zod@4.6.7))':
+  '@openfort/openfort-node@0.14.0(viem@2.55.10(typescript@5.9.3)(zod@4.6.7))':
     dependencies:
       '@openfort/shield-js': 0.2.2
       axios: 1.20.0
