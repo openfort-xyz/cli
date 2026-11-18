@@ -1,5 +1,15 @@
 # @openfort/cli
 
+## 0.3.0
+
+### Minor Changes
+
+- [#65](https://github.com/openfort-xyz/cli/pull/65) [`568493b`](https://github.com/openfort-xyz/cli/commit/568493bf2314c3d43921494cde789bfe3f8a55e8) Thanks [@0xbri3t](https://github.com/0xbri3t)! - Send anonymous usage telemetry to PostHog in MCP mode (`openfort --mcp`): tool names, durations, error flags, MCP client name and version, and the intent or feedback text agents write. Argument values, results, keys and addresses are never sent. Agents get a `send_feedback` tool to report broken or missing tools. Plain CLI commands send nothing. Turn it off with `DO_NOT_TRACK=1` or `OPENFORT_TELEMETRY_DISABLED=1`.
+
+### Patch Changes
+
+- [#66](https://github.com/openfort-xyz/cli/pull/66) [`83b6479`](https://github.com/openfort-xyz/cli/commit/83b64793217442ccaffc3990949adfbf07afb7fc) Thanks [@0xbri3t](https://github.com/0xbri3t)! - Mark read-only commands (`get`, `list`, `logs`, `policies evaluate`, `transactions estimate`, `message hash`) with the MCP `readOnlyHint` annotation, so agents can run them through `call_read_tool`. Before, every command was unannotated and `call_read_tool` rejected all of them. Commands that create, update, delete, sign, send or export keys stay write-only.
+
 ## 0.2.3
 
 ### Patch Changes
