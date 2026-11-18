@@ -1,5 +1,6 @@
 import { Cli, z } from 'incur'
 import { getOpenfort } from '../client.js'
+import { READ_ONLY_TOOL } from '../constants.js'
 
 const paymasterItem = z.object({
   id: z.string(),
@@ -53,6 +54,7 @@ paymasters.command('create', {
 
 paymasters.command('get', {
   description: 'Get a paymaster by ID.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     id: z.string().describe('Paymaster ID (pay_...)'),
   }),

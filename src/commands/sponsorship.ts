@@ -1,6 +1,7 @@
 import { Cli, z } from 'incur'
 import type { FeeSponsorshipStrategy } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
+import { READ_ONLY_TOOL } from '../constants.js'
 
 const sponsorSchemas = ['pay_for_user', 'charge_custom_tokens', 'fixed_rate'] as const
 
@@ -26,6 +27,7 @@ export const sponsorship = Cli.create('sponsorship', {
 
 sponsorship.command('list', {
   description: 'List fee sponsorships.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     limit: z.number().optional().describe('Max results'),
     skip: z.number().optional().describe('Offset'),
@@ -115,6 +117,7 @@ sponsorship.command('create', {
 
 sponsorship.command('get', {
   description: 'Get a fee sponsorship by ID.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     id: z.string().describe('Fee sponsorship ID (pol_...)'),
   }),

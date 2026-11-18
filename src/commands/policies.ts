@@ -6,6 +6,7 @@ import type {
 } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
 import { parseJsonOption } from '../json.js'
+import { READ_ONLY_TOOL } from '../constants.js'
 
 const policyScopes = ['project', 'account', 'transaction'] as const
 
@@ -15,6 +16,7 @@ export const policies = Cli.create('policies', {
 
 policies.command('list', {
   description: 'List policies.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     limit: z.number().optional().describe('Max results'),
     skip: z.number().optional().describe('Offset'),
@@ -129,6 +131,7 @@ policies.command('create', {
 
 policies.command('get', {
   description: 'Get a policy by ID.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     id: z.string().describe('Policy ID (ply_...)'),
   }),
@@ -221,6 +224,7 @@ policies.command('delete', {
 
 policies.command('evaluate', {
   description: 'Pre-flight check if an operation would be allowed.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     operation: z.string().describe('Operation to evaluate (e.g. signEvmTransaction)'),
     accountId: z.string().optional().describe('Account ID'),
