@@ -1,5 +1,6 @@
 import { Cli, z } from 'incur'
 import { getOpenfort } from '../client.js'
+import { READ_ONLY_TOOL } from '../constants.js'
 
 const userItem = z.object({
   id: z.string(),
@@ -27,6 +28,7 @@ export const users = Cli.create('users', {
 
 users.command('list', {
   description: 'List users.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     limit: z.number().optional().describe('Max results'),
     skip: z.number().optional().describe('Offset'),
@@ -68,6 +70,7 @@ users.command('list', {
 
 users.command('get', {
   description: 'Get a user by ID.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     id: z.string().describe('User ID (usr_...)'),
   }),

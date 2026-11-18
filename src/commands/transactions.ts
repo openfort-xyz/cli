@@ -1,6 +1,7 @@
 import { Cli, z } from 'incur'
 import { getOpenfort } from '../client.js'
 import { parseJsonOption } from '../json.js'
+import { READ_ONLY_TOOL } from '../constants.js'
 
 const transactionIntentItem = z.object({
   id: z.string(),
@@ -36,6 +37,7 @@ export const transactions = Cli.create('transactions', {
 
 transactions.command('list', {
   description: 'List transaction intents.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     limit: z.number().optional().describe('Max results'),
     skip: z.number().optional().describe('Offset'),
@@ -137,6 +139,7 @@ transactions.command('create', {
 
 transactions.command('get', {
   description: 'Get a transaction intent by ID.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     id: z.string().describe('Transaction intent ID (tin_...)'),
   }),
@@ -205,6 +208,7 @@ transactions.command('sign', {
 
 transactions.command('estimate', {
   description: 'Estimate gas cost for a transaction.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     account: z.string().describe('Account ID (acc_...)'),
     chainId: z.number().describe('Chain ID'),

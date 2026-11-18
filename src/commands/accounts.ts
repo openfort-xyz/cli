@@ -6,6 +6,7 @@ import type {
 } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
 import { parseJsonOption } from '../json.js'
+import { READ_ONLY_TOOL } from '../constants.js'
 
 const requireWallet = middleware((c, next) => {
   const missing: string[] = []
@@ -61,6 +62,7 @@ evm.command('create', {
 
 evm.command('list', {
   description: 'List EVM backend wallets.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     limit: z.number().optional().describe('Max results'),
     skip: z.number().optional().describe('Offset'),
@@ -96,6 +98,7 @@ evm.command('list', {
 
 evm.command('list-delegated', {
   description: 'List EVM delegated accounts.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     limit: z.number().optional().describe('Max results'),
     skip: z.number().optional().describe('Offset'),
@@ -132,6 +135,7 @@ evm.command('list-delegated', {
 
 evm.command('list-smart', {
   description: 'List EVM smart accounts.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     limit: z.number().optional().describe('Max results'),
     skip: z.number().optional().describe('Offset'),
@@ -168,6 +172,7 @@ evm.command('list-smart', {
 
 evm.command('get', {
   description: 'Get an EVM backend wallet by ID or address.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     id: z.string().describe('Account ID or address'),
   }),
@@ -405,6 +410,7 @@ solana.command('create', {
 
 solana.command('list', {
   description: 'List Solana backend wallets.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     limit: z.number().optional().describe('Max results'),
     skip: z.number().optional().describe('Offset'),
@@ -439,6 +445,7 @@ solana.command('list', {
 
 solana.command('get', {
   description: 'Get a Solana backend wallet by ID or address.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     id: z.string().describe('Account ID or address'),
   }),
@@ -601,6 +608,7 @@ const accounts = Cli.create('accounts', {
 
 accounts.command('list', {
   description: 'List all accounts across chains.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     limit: z.number().optional().describe('Max results'),
     skip: z.number().optional().describe('Offset'),

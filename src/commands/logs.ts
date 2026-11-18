@@ -8,6 +8,7 @@ import {
 } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
 import { apiTopics, toApiTopic } from './subscriptions.js'
+import { READ_ONLY_TOOL } from '../constants.js'
 
 const apiStatuses = ['success', 'failed'] as const
 const sortOrders = ['asc', 'desc'] as const
@@ -78,6 +79,7 @@ export const logs = Cli.create('logs', {
 
 logs.command('list', {
   description: 'List project API request logs. Use this to see what calls were made and how they responded.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     method: z.array(z.string()).optional().describe('Filter by HTTP method (e.g. GET, POST). Repeatable.'),
     id: z.string().optional().describe('Filter by request ID'),
@@ -116,6 +118,7 @@ logs.command('list', {
 
 logs.command('webhook', {
   description: 'List webhook delivery logs. Use this to see whether webhook deliveries succeeded or failed.',
+  mcp: READ_ONLY_TOOL,
   examples: [
     { description: 'List webhook delivery logs' },
   ],
@@ -129,6 +132,7 @@ logs.command('webhook', {
 
 logs.command('subscriptions', {
   description: 'List triggered subscription logs. Use this to see which subscriptions fired and their outcome.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     limit: z.number().optional().describe('Max results'),
     skip: z.number().optional().describe('Offset'),

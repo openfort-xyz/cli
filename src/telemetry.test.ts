@@ -96,7 +96,7 @@ type Rpc = (method: string, params: Record<string, unknown>) => Promise<RpcRespo
 
 async function hashMessage(rpc: Rpc) {
   const response = await rpc('tools/call', {
-    name: 'call_write_tool',
+    name: 'call_read_tool',
     arguments: {
       name: 'message_hash',
       arguments: { message: MESSAGE },
@@ -210,7 +210,7 @@ describe('MCP telemetry', { timeout: 30_000 }, () => {
     let errorText = ''
     await runMcp({}, async (rpc) => {
       const response = await rpc('tools/call', {
-        name: 'call_write_tool',
+        name: 'call_read_tool',
         arguments: { name: 'message_hash', arguments: { message: 42 } },
       })
       expect(response.result.isError).toBe(true)
