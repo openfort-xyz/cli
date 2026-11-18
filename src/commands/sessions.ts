@@ -1,6 +1,7 @@
 import { Cli, z } from 'incur'
 import { getOpenfort } from '../client.js'
 import { parseJsonOption } from '../json.js'
+import { READ_ONLY_TOOL } from '../constants.js'
 
 const sessionItem = z.object({
   id: z.string(),
@@ -23,6 +24,7 @@ export const sessions = Cli.create('sessions', {
 
 sessions.command('list', {
   description: 'List session keys for a player.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     player: z.string().describe('Player ID (pla_...)'),
     limit: z.number().optional().describe('Max results'),
@@ -121,6 +123,7 @@ sessions.command('create', {
 
 sessions.command('get', {
   description: 'Get a session key by ID.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     id: z.string().describe('Session ID (ses_...)'),
   }),

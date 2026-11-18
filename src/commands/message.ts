@@ -7,6 +7,7 @@ export const message = Cli.create('message', {
 
 message.command('hash', {
   description: 'Hash a message using keccak256.',
+  mcp: { annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false } },
   args: z.object({
     message: z.string().describe('The message to hash'),
   }),

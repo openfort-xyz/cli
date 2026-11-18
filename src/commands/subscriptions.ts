@@ -2,6 +2,7 @@ import { Cli, z } from 'incur'
 import type { APITopic, CreateTriggerRequest } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
 import { parseJsonOption } from '../json.js'
+import { READ_ONLY_TOOL } from '../constants.js'
 
 export const apiTopics = [
   'transaction_intent.broadcast',
@@ -38,6 +39,7 @@ const triggers = Cli.create('triggers', {
 
 triggers.command('list', {
   description: 'List triggers for a subscription.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     subscriptionId: z.string().describe('Subscription ID (sub_...)'),
   }),
@@ -103,6 +105,7 @@ triggers.command('create', {
 
 triggers.command('get', {
   description: 'Get a trigger by ID.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     subscriptionId: z.string().describe('Subscription ID (sub_...)'),
     triggerId: z.string().describe('Trigger ID (tri_...)'),
@@ -154,6 +157,7 @@ export const subscriptions = Cli.create('subscriptions', {
 
 subscriptions.command('list', {
   description: 'List webhook subscriptions.',
+  mcp: READ_ONLY_TOOL,
   examples: [
     { description: 'List all subscriptions' },
   ],
@@ -237,6 +241,7 @@ subscriptions.command('create', {
 
 subscriptions.command('get', {
   description: 'Get a subscription by ID.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     id: z.string().describe('Subscription ID (sub_...)'),
   }),

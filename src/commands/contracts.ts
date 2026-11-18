@@ -2,6 +2,7 @@ import { Cli, z } from 'incur'
 import type { Abi } from '@openfort/openfort-node'
 import { getOpenfort } from '../client.js'
 import { parseJsonOption } from '../json.js'
+import { READ_ONLY_TOOL } from '../constants.js'
 
 const contractItem = z.object({
   id: z.string(),
@@ -20,6 +21,7 @@ export const contracts = Cli.create('contracts', {
 
 contracts.command('list', {
   description: 'List registered contracts.',
+  mcp: READ_ONLY_TOOL,
   options: z.object({
     limit: z.number().optional().describe('Max results'),
     skip: z.number().optional().describe('Offset'),
@@ -106,6 +108,7 @@ contracts.command('create', {
 
 contracts.command('get', {
   description: 'Get a contract by ID.',
+  mcp: READ_ONLY_TOOL,
   args: z.object({
     id: z.string().describe('Contract ID (con_...)'),
   }),
