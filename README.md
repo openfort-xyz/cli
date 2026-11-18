@@ -74,14 +74,32 @@ Install agent skill files for discovery:
 openfort skills add
 ```
 
+### Telemetry
+
+In MCP mode (`openfort --mcp`), the CLI sends anonymous usage events to Openfort's PostHog project so we can see which tools agents use, which fail, and what they report as missing. Plain CLI commands send nothing.
+
+Sent per event: the tool name, which argument names were passed, duration, an error flag, the MCP client name and version, the model name if the client reports it, a random id for the MCP session, and text the agent writes itself: the stated intent of a call and `send_feedback` reports.
+
+Not sent: argument values, results and error messages. Agents are told to keep keys, secrets, addresses and ids out of intent and feedback text, and API keys, emails and any token of 32 or more characters (addresses, hashes, ids, secrets) are masked in it. No person profiles and no machine id are created.
+
+To turn it off, set either variable to any value other than `0` or `false`:
+
+```bash
+export DO_NOT_TRACK=1
+export OPENFORT_TELEMETRY_DISABLED=1
+```
+
+With telemetry off, the `send_feedback` tool is not offered.
+
 ## Environment Variables
 
-| Variable                   | Description                                     |
-| -------------------------- | ----------------------------------------------- |
-| `OPENFORT_API_KEY`         | Secret API key (`sk_test_...` or `sk_live_...`) |
-| `OPENFORT_WALLET_SECRET`   | Wallet encryption secret                        |
-| `OPENFORT_PUBLISHABLE_KEY` | Publishable key for client-side ops             |
-| `OPENFORT_BASE_URL`        | Custom API base URL                             |
+| Variable                      | Description                                              |
+| ----------------------------- | -------------------------------------------------------- |
+| `OPENFORT_API_KEY`            | Secret API key (`sk_test_...` or `sk_live_...`)          |
+| `OPENFORT_WALLET_SECRET`      | Wallet encryption secret                                 |
+| `OPENFORT_PUBLISHABLE_KEY`    | Publishable key for client-side ops                      |
+| `OPENFORT_BASE_URL`           | Custom API base URL                                      |
+| `OPENFORT_TELEMETRY_DISABLED` | Disable MCP-mode telemetry (see [Telemetry](#telemetry)) |
 
 ## Commands
 
