@@ -44,6 +44,9 @@ openfort accounts solana create
 # List policies
 openfort policies list
 
+# Check which chains are supported (no API key needed)
+openfort chains list --chainType EVM --network mainnet
+
 # Send a transaction
 openfort transactions create --account acc_1a2b3c4d --chainId 137 --interactions '[{"to":"0x...","value":"0"}]'
 
@@ -98,6 +101,7 @@ openfort skills add
 | `backend-wallet`  | Configure backend wallet signing keys                               |
 | `embedded-wallet` | Configure embedded wallet (Shield) API keys                         |
 | `message`         | Message utilities (e.g. keccak256 hashing)                          |
+| `chains`          | List supported chains, their bundler and EIP-7702 support (no key)  |
 
 ## Documentation
 
