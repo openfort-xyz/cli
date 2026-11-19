@@ -24,6 +24,7 @@ declare module 'incur' {
       'backend-wallet revoke': { args: {}; options: {} }
       'backend-wallet rotate': { args: {}; options: {} }
       'backend-wallet setup': { args: {}; options: { rotate?: boolean } }
+      'chains list': { args: {}; options: { chainType?: "EVM" | "SVM"; network?: "mainnet" | "testnet" } }
       'contracts create': { args: {}; options: { name: string; address: string; chainId: number; abi?: string } }
       'contracts delete': { args: { id: string }; options: {} }
       'contracts get': { args: { id: string }; options: {} }

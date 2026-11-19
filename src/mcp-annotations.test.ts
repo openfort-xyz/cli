@@ -31,6 +31,7 @@ const CLASSIFICATION: Record<string, 'read' | 'write'> = {
   'backend-wallet_revoke': 'write',
   'backend-wallet_rotate': 'write',
   'backend-wallet_setup': 'write',
+  'chains_list': 'read',
   'contracts_create': 'write',
   'contracts_delete': 'write',
   'contracts_get': 'read',

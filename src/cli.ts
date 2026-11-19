@@ -14,6 +14,7 @@ import { embeddedWallet } from './commands/embedded-wallet.js'
 import { users } from './commands/users.js'
 import { backendWallet } from './commands/backend-wallet.js'
 import { message } from './commands/message.js'
+import { chains } from './commands/chains.js'
 
 const pkg: { version: string } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'))
 
@@ -28,13 +29,14 @@ const cli = Cli.create('openfort', {
   }),
   sync: {
     depth: 2,
-    include: ['_root', 'accounts', 'transactions', 'policies', 'sponsorship', 'contracts', 'users', 'sessions', 'subscriptions', 'logs', 'backend-wallet', 'embedded-wallet'],
+    include: ['_root', 'accounts', 'transactions', 'policies', 'sponsorship', 'contracts', 'users', 'sessions', 'subscriptions', 'logs', 'backend-wallet', 'embedded-wallet', 'chains'],
     suggestions: [
       'create an EVM backend wallet',
       'list all accounts',
       'create a policy for gas sponsorship',
       'list users',
       'estimate transaction gas cost',
+      'check whether a chain is supported',
     ],
   },
   mcp: {
@@ -58,5 +60,6 @@ cli
   .command(users)
   .command(backendWallet)
   .command(message)
+  .command(chains)
 
 export default cli
