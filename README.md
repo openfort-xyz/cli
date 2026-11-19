@@ -119,7 +119,7 @@ With telemetry off, the `send_feedback` tool is not offered.
 | `backend-wallet`  | Configure backend wallet signing keys                               |
 | `embedded-wallet` | Configure embedded wallet (Shield) API keys                         |
 | `message`         | Message utilities (e.g. keccak256 hashing)                          |
-| `chains`          | List supported chains, their bundler and EIP-7702 support (no key)  |
+| `chains`          | List supported chains and Delegated Account support (no key)        |
 
 ## Documentation
 

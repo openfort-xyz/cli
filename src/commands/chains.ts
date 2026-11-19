@@ -8,7 +8,6 @@ const chain = z.object({
   name: z.string(),
   chainType: z.enum(['EVM', 'SVM']),
   testnet: z.boolean(),
-  bundler: z.enum(['alto', 'pimlico']).nullable(),
   eip7702: z.boolean(),
 })
 
@@ -59,10 +58,10 @@ export const chains = Cli.create('chains', {
 
 chains.command('list', {
   description:
-    'List the chains Openfort supports, with chain ID, name, chain type (EVM or SVM), testnet flag, ' +
-    'ERC-4337 bundler (alto or pimlico; null for Solana) and EIP-7702 support. Use this to answer ' +
-    '"is chain X supported?", "which chains can I use?", "does chain X support 7702?" and ' +
-    '"which bundler serves chain X?". No API key needed.',
+    'List the chains Openfort supports, with chain ID, name, chain type (EVM or SVM), testnet flag ' +
+    'and whether Delegated Accounts (EIP-7702) can be created there. Use this to answer ' +
+    '"is chain X supported?", "which chains can I use?" and "can I create a Delegated Account ' +
+    'on chain X?". No API key needed.',
   options: z.object({
     chainType: z.enum(['EVM', 'SVM']).optional().describe('Only EVM or only Solana (SVM) chains'),
     network: z.enum(['mainnet', 'testnet']).optional().describe('Only mainnets or only testnets'),

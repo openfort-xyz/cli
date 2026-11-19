@@ -2,16 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { API_BASE_URL } from '../constants.js'
 import cli from '../cli.js'
 
-const base = { chainId: 8453, name: 'Base', chainType: 'EVM', testnet: false, bundler: 'alto', eip7702: true }
+const base = { chainId: 8453, name: 'Base', chainType: 'EVM', testnet: false, eip7702: true }
 const baseSepolia = { ...base, chainId: 84532, name: 'Base Sepolia', testnet: true }
-const solanaDevnet = {
-  chainId: 2,
-  name: 'Solana Devnet',
-  chainType: 'SVM',
-  testnet: true,
-  bundler: null,
-  eip7702: false,
-}
+const solanaDevnet = { chainId: 2, name: 'Solana Devnet', chainType: 'SVM', testnet: true, eip7702: false }
 const apiBody = { object: 'list', url: '/v1/chains', start: 0, end: 3, total: 3, data: [base, baseSepolia, solanaDevnet] }
 
 async function run(argv: string[]) {
